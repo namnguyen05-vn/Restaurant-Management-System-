@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thực Đơn - Healthy Food</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/CSS/style.css">
+</head>
+<body>
+
+    <header class="header">
+        <div class="container header-container">
+            <div class="logo">
+                <a href="Home.html"><img src="/image/LOGO.png" alt="Logo Nhà Hàng"></a>
+            </div>
+
+            <nav class="nav-menu">
+                <ul>
+                    <li><a href="Home.html">Trang chủ</a></li>
+                    <li><a href="Menu.html" class="active-pill">Thực đơn</a></li>
+                    <li><a href="Home.html#lien-he">Liên hệ</a></li>
+                    <li><a href="Home.html#gioi-thieu">Giới thiệu</a></li>
+                </ul>
+            </nav>
+
+            <div class="header-actions">
+                <input type="text" id="search-input" class="search-input" placeholder="Tìm tên món ăn...">
+                <button class="icon-btn search-btn" title="Tìm kiếm">🔍</button>
+                <button class="icon-btn cart-btn" id="header-cart-btn" title="Giỏ hàng">🛒 <span class="cart-badge" id="cart-badge">0</span></button>                
+                <button id="login-btn" class="btn btn-primary login-btn">Đăng nhập</button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-banner">
+            <div class="container text-center">
+                <h1>Tất Cả Món Ăn</h1>
+                <div class="banner-divider">... .. . .. ...</div>
+            </div>
+        </section>
+
+        <section class="menu-page-section section-padding">
+            <div class="container">
+                
+                <div class="menu-filters">
+                    <button class="filter-btn active-filter" data-filter="all">Tất cả</button>
+                    <button class="filter-btn" data-filter="mon-chinh">Món Chính</button>
+                    <button class="filter-btn" data-filter="do-uong">Đồ uống</button>
+                    <button class="filter-btn" data-filter="trang-mieng">Tráng miệng</button>
+                </div>
+
+                <div class="menu-grid" id="menu-container">
+                    
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-banner-wrapper section-padding">
+            <div class="container">
+                <div class="footer-banner">
+                    <img src="/image/BackgroundNhaHang2.png" alt="Banner Background" class="banner-bg">
+                    <div class="banner-content">
+                        <h2>Gắn Kết Yêu Thương Qua Từng Bữa Ăn</h2>
+                        <p>Một không gian ẩm thực ấm cúng với các món ăn tươi ngon, dịch vụ thân thiện và bầu không khí thư giãn...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div class="container footer-bottom-container">
+                <div class="footer-logo">
+                    <img src="/image/LOGO.png" alt="Logo" style="height: 50px;">
+                </div>
+                <p style="flex: 1; text-align: center; color: #888; font-size: 0.9rem;">© 2024 Lift Media. Đã đăng ký bản quyền.</p>
+            </div>
+        </div>
+    </footer>
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span> 
+            
+            <div class="login-layout">
+                <div class="login-left">
+                    <div class="login-form-container">
+                        <img src="/image/LOGO.png" alt="Logo" class="login-logo">
+                        <form action="#">
+                            <div class="input-group">
+                                <input type="text" placeholder="Tên đăng nhập" required>
+                                <i class="fa-regular fa-user"></i>
+                            </div>
+                            <div class="input-group">
+                                <input type="password" id="pwd-input" placeholder="Mật khẩu" required>
+                                <i class="fa-regular fa-eye-slash" id="pwd-eye"></i>
+                            </div>
+                            <button type="submit" class="btn btn-dark-login">ĐĂNG NHẬP</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="login-right">
+                    </div>
+            </div>
+        </div>
+    </div>
+    <div class="cart-overlay" id="cart-overlay"></div>
+    <div class="cart-sidebar" id="cart-sidebar">
+        <div class="cart-header">
+            <button class="close-cart-btn" id="close-cart-btn">
+                <i class="fa-solid fa-arrow-left"></i> Thực đơn
+            </button>
+            <h2>Đơn hàng</h2>
+        </div>
+        
+        <div class="cart-items" id="cart-items-container">
+            <div style="text-align: center; color: #888; margin-top: 50px;">Giỏ hàng của bạn đang trống</div>
+        </div>
+
+        <div class="cart-footer">
+            <select id="table-selector">
+                <option value="">-- Chọn bàn của bạn --</option>
+            </select>
+            
+            <button class="status-btn" id="order-status-btn" style="display: none;">Đang chọn món</button>
+            
+            <div class="cart-summary">
+                <div class="summary-row">
+                    <span>Giảm giá</span>
+                    <span>0 đ</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Tổng tiền</span>
+                    <span id="cart-total-price">0 đ</span>
+                </div>
+            </div>
+
+            <div class="order-notes-container" id="note-container">
+                <textarea id="order-notes" placeholder="Ghi chú cho nhà bếp (VD: ít cay, không hành...)" rows="3"></textarea>
+            </div>
+
+            <button class="checkout-btn" id="order-btn">Gọi món</button>
+        </div>
+    </div>
+    <script src="/JS/Home.js" ></script>
+</body>
+</html>

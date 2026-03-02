@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhà Hàng Healthy Food - Ăn Ngon Sống Khỏe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/CSS/style.css">
+</head>
+<body>
+
+    <header class="header">
+        <div class="container header-container">
+            <div class="logo">
+                <img src="/image/LOGO.png" alt="Logo Nhà Hàng">
+            </div>
+
+            <nav class="nav-menu">
+                <ul>
+                    <li><a href="Home.html" class = "active-pill">Trang chủ</a></li>
+                    <li><a href="Menu.html">Thực đơn</a></li>
+                    <li><a href="#lien-he">Liên hệ</a></li> 
+                    <li><a href="#gioi-thieu">Giới thiệu</a></li>
+                </ul>
+            </nav>
+
+            <div class="header-actions">
+                <button class="icon-btn cart-btn" id="header-cart-btn" title="Giỏ hàng">🛒 <span class="cart-badge" id="cart-badge">0</span></button>                
+                <button id="login-btn" class="btn btn-primary login-btn">Đăng nhập</button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container hero-container">
+                <div class="hero-content">
+                    <h1>Khởi đầu ngày mới với <span class="highlight">Bữa Sáng Healthy</span></h1>
+                    <p>Chúng tôi mang đến những bữa ăn tươi ngon, giàu dinh dưỡng, được chế biến từ nguyên liệu sạch. Phục vụ tận tâm tại nhà hàng.</p>
+                    <a href="#" class="btn btn-primary hero-btn">Gọi món ngay</a>
+
+                    <div class="promo-banner">
+                        <div class="promo-text">
+                            Ưu đãi đặc biệt cho các món yêu thích của bạn!
+                        </div>
+                        <div class="promo-value">Giảm 15%</div>
+                    </div>
+                </div>
+
+                <div class="hero-images">
+                    <div class="main-dish-img">
+                        <img src="/image/MonChinh.png" >
+                    </div>
+                    <div class="sub-dish-img">
+                        <img src="/image/MonPhu.png" >
+                    </div>
+                     <div class="decorative-element"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="features">
+            <div class="container features-container">
+                <div class="feature-item">
+                    <div class="feature-icon">🍽️</div> <h3>Đặt Món Dễ Dàng</h3>
+                    <p>Chỉ với vài thao tác đơn giản, chọn món ăn yêu thích của bạn để được phục vụ ngay lập tức.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">👨‍🍳</div> <h3>Phục Vụ Tận Tâm</h3>
+                    <p>Đội ngũ phục vụ chuyên nghiệp đảm bảo món ăn luôn nóng hổi và thơm ngon khi đến tay bạn.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">💎</div> <h3>Chất Lượng Hảo Hạng</h3>
+                    <p>Cam kết sử dụng nguyên liệu tươi sạch nhất, được chế biến bởi các đầu bếp hàng đầu.</p>
+                </div>
+            </div>
+        </section>
+
+       <section class="popular-items section-padding">
+            <div class="container">
+                <h2 class="section-title">Món Ngon Nổi Bật</h2>
+                
+                <div class="slider-container">
+                    <div class="slider-track" id="popular-slider-track">
+                        </div> 
+                </div> 
+
+                <div class="slider-nav-bottom">
+                    <button class="nav-arrow prev">←</button>
+                    <button class="nav-arrow next">→</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="about-us section-padding" id = "gioi-thieu">
+            <div class="container about-container">
+                <div class="about-image">
+                    <div class="image-circle-wrapper">
+                        <img src="/image/BackgroundNhaHang1.png" alt="Về nhà hàng chúng tôi">
+                    </div>
+                </div>
+                <div class="about-content">
+                    <h4 class="sub-title">Về Chúng Tôi</h4>
+                    <h2>Gắn kết mọi người qua hương vị tuyệt vời và sự phục vụ tận tâm.</h2>
+                    <p>Chúng tôi không chỉ phục vụ món ăn, chúng tôi mang đến trải nghiệm. Với không gian ấm cúng và thực đơn được thiết kế bởi các chuyên gia dinh dưỡng, mỗi bữa ăn tại đây là một hành trình chăm sóc sức khỏe cho bạn và gia đình.</p>
+                    
+                    <div class="about-stats">
+                        <div class="stat-item">
+                            <span class="stat-number highlight">10K+</span>
+                            <span class="stat-label">Khách hàng vui vẻ</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number highlight">98+</span>
+                            <span class="stat-label">Mức độ hài lòng</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number highlight">5-⭐</span>
+                            <span class="stat-label">Chất lượng dịch vụ</span>
+                        </div>
+                    </div>
+
+                    <div class="owner-info">
+                        <h3>Hoàng Nam</h3>
+                        <span>Người sáng lập</span>
+                        <div class="social-icons">
+                        <a href="https://www.facebook.com/nguyen.ngoc.hoang.nam.612302/" target="_blank" title="FB cá nhân">
+                            <i class="fa-brands fa-facebook fa-3x" style="color: rgb(52, 98, 176);"></i>
+                        </a>
+                        <a href="https://www.instagram.com/namhoang2608/" target="_blank" title="IG cá nhân">
+                            <i class="fa-brands fa-instagram fa-3x" style="color: #971a6f;"></i>
+                        </a>
+                        <a href="https://github.com/namnguyen05-vn" target="_blank" title="Github cá nhân">
+                            <i class="fa-brands fa-github fa-3x" style="color:black;"></i>
+                        </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <section id="lien-he" class="contact-section section-padding">
+        <div class="container">
+            <h2 class="section-title">Liên hệ với chúng tôi</h2>
+            <div class="contact-card">
+                <form action="#" method="POST">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Họ (First Name) *</label>
+                            <input type="text" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Tên (Last Name) *</label>
+                            <input type="text" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Email *</label>
+                            <input type="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Số điện thoại *</label>
+                            <input type="tel" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Tiêu đề (Subject)</label>
+                        <input type="text">
+                    </div>
+                    <div class="form-group">
+                        <label>Lời nhắn (Message) *</label>
+                        <textarea rows="5" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-submit-contact">Gửi tin nhắn</button>
+                </form>
+            </div>
+        </div>
+    </section>
+    <footer>
+        <div class="footer-banner-wrapper section-padding">
+            <div class="container">
+                <div class="footer-banner">
+                    <img src="/image/BackgroundNhaHang2.png" alt="Banner Background" class="banner-bg">
+                    <div class="banner-content">
+                        <h2>Gắn Kết Yêu Thương Qua Từng Bữa Ăn</h2>
+                        <p>Một không gian ẩm thực ấm cúng với các món ăn tươi ngon, dịch vụ thân thiện và bầu không khí thư giãn dành cho tất cả những người yêu ẩm thực.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div class="container footer-bottom-container">
+                <p>© 2024 Lift Media. Đã đăng ký bản quyền.</p>
+            </div>
+        </div>
+    </footer>
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span> 
+            
+            <div class="login-layout">
+                <div class="login-left">
+                    <div class="login-form-container">
+                        <img src="/image/LOGO.png" alt="Logo" class="login-logo">
+                        <form action="#">
+                            <div class="input-group">
+                                <input type="text" placeholder="Tên đăng nhập" required>
+                                <i class="fa-regular fa-user"></i>
+                            </div>
+                            <div class="input-group">
+                                <input type="password" id="pwd-input" placeholder="Mật khẩu" required>
+                                <i class="fa-regular fa-eye-slash" id="pwd-eye"></i>
+                            </div>
+                            <button type="submit" class="btn btn-dark-login">ĐĂNG NHẬP</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="login-right">
+                    </div>
+            </div>
+        </div>
+    </div>
+    <div class="cart-overlay" id="cart-overlay"></div>
+    <div class="cart-sidebar" id="cart-sidebar">
+        <div class="cart-header">
+            <button class="close-cart-btn" id="close-cart-btn">
+                <i class="fa-solid fa-arrow-left"></i> Thực đơn
+            </button>
+            <h2>Đơn hàng</h2>
+        </div>
+        
+        <div class="cart-items" id="cart-items-container">
+            <div style="text-align: center; color: #888; margin-top: 50px;">Giỏ hàng của bạn đang trống</div>
+        </div>
+
+        <div class="cart-footer">
+            <select id="table-selector">
+                <option value="">-- Chọn bàn của bạn --</option>
+            </select>
+            
+            <button class="status-btn" id="order-status-btn" style="display: none;">Đang chọn món</button>
+            
+            <div class="cart-summary">
+                <div class="summary-row">
+                    <span>Giảm giá</span>
+                    <span>0 đ</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Tổng tiền</span>
+                    <span id="cart-total-price">0 đ</span>
+                </div>
+            </div>
+
+            <div class="order-notes-container" id="note-container">
+                <textarea id="order-notes" placeholder="Ghi chú cho nhà bếp (VD: ít cay, không hành...)" rows="3"></textarea>
+            </div>
+
+            <button class="checkout-btn" id="order-btn">Gọi món</button>
+        </div>
+    </div>
+    <script src="/JS/Home.js"></script>
+</body>
+</html>

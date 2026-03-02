@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Nhân Viên - Healthy Food</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/CSS/style.css">
+    <script src="/JS/staff.js" defer></script>
+</head>
+<body style="background-color: #f4f7f6;">
+
+    <header class="header">
+        <div class="container header-container">
+            <div class="logo">
+                <img src="/image/LOGO.png" alt="Logo Nhà Hàng">
+            </div>
+            <nav class="nav-menu">
+                <ul>
+                    <li><a href="#" id="nav-orders" class="active-pill">Quản lý Đơn hàng</a></li>
+                    <li><a href="#" id="nav-tables">Quản lý Bàn</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <span style="margin-right: 15px; font-weight: 500;">👤 NV: Trần Văn A</span>
+                <button class="btn btn-primary" style="background-color: #e74c3c;">Đăng xuất</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="section-padding">
+        <div class="container">
+            
+            <div id="section-orders">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                    <h2 style="color: var(--primary-color);">Theo dõi Đơn hàng (Live)</h2>
+                    <div class="menu-filters" style="margin-bottom: 0; border: none; padding: 0;">
+                        <button class="filter-btn active-filter" data-status="all">Tất cả</button>
+                        <button class="filter-btn" data-status="pending">Mới (Chờ xác nhận)</button>
+                        <button class="filter-btn" data-status="cooking">Đang chế biến</button>
+                    </div>
+                </div>
+                <div class="order-board" id="order-board">
+                    </div>
+            </div>
+
+            <div id="section-tables" style="display: none;">
+                <h2 style="color: var(--primary-color); margin-bottom: 30px;">Sơ đồ trạng thái bàn</h2>
+                <div id="table-grid" class="table-grid">
+                    </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="cancel-modal" class="modal">
+        <div class="modal-content" style="width: 500px; height: auto; padding: 30px;">
+            <span class="close-modal" id="close-cancel-modal" style="color: #333;">&times;</span>
+            <h3 style="margin-bottom: 20px; color: #e74c3c;">Xác nhận Hủy đơn</h3>
+            <p>Vui lòng nhập lý do hủy đơn cho <strong id="cancel-table-name">Bàn ...</strong>:</p>
+            <textarea id="cancel-reason" rows="3" style="width: 100%; padding: 10px; margin: 15px 0; border-radius: 8px; border: 1px solid #ccc;" placeholder="VD: Khách chọn sai bàn, Khách đổi ý..."></textarea>
+            <input type="hidden" id="cancel-order-id">
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn" id="btn-abort-cancel" style="background: #ccc;">Quay lại</button>
+                <button class="btn btn-primary" id="btn-confirm-cancel" style="background: #e74c3c;">Đồng ý Hủy</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

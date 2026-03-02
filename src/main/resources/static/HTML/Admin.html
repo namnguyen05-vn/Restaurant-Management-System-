@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Healthy Food</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="Admin.js" defer></script>
+</head>
+<body class="admin-layout">
+
+<aside class="admin-sidebar">
+    <div class="brand">
+        <i class="fa-solid fa-leaf" style="color: #f1c40f;"></i> Healthy Food
+    </div>
+    <ul class="admin-menu">
+        <li id="menu-dashboard" class="active-tab"><i class="fa-solid fa-chart-pie"></i> Tổng quan & Doanh thu</li>
+        <li id="menu-food"><i class="fa-solid fa-burger"></i> Quản lý Thực đơn</li>
+        <li id="menu-staff"><i class="fa-solid fa-users-gear"></i> Quản lý Nhân viên</li>
+        <li style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1);">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất
+        </li>
+    </ul>
+</aside>
+
+<main class="admin-main">
+    <header class="admin-header-top">
+        <h2 id="page-title" style="color: var(--text-dark);">Tổng quan hệ thống</h2>
+        <div>
+            <span style="font-weight: 500; margin-right: 15px;">👋 Chào Admin,</span>
+            <img src="image/Flan.png" style="width: 40px; height: 40px; border-radius: 50%; vertical-align: middle;" alt="Admin Avatar">
+        </div>
+    </header>
+
+    <div class="admin-content">
+
+        <section id="tab-dashboard">
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+                    <div class="stat-info"><h3>Doanh thu hôm nay</h3><div class="value" id="stat-revenue">0đ</div></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#e8f4fd; color:#3498db;"><i class="fa-solid fa-receipt"></i></div>
+                    <div class="stat-info"><h3>Đơn hàng hoàn tất</h3><div class="value" id="stat-orders">0 đơn</div></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#fef5e7; color:#f39c12;"><i class="fa-solid fa-burger"></i></div>
+                    <div class="stat-info"><h3>Món ăn đang bán</h3><div class="value">24 món</div></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#fceae9; color:#e74c3c;"><i class="fa-solid fa-users"></i></div>
+                    <div class="stat-info"><h3>Khách đang phục vụ</h3><div class="value">4 bàn</div></div>
+                </div>
+            </div>
+
+            <div class="chart-wrapper">
+                <h3 style="margin-bottom: 20px; color: var(--text-dark);">Biểu đồ Doanh thu 7 ngày qua</h3>
+                <canvas id="revenueChart" height="80"></canvas>
+            </div>
+        </section>
+
+        <section id="tab-food" style="display: none;">
+            <div class="table-container">
+                <div class="table-header-flex">
+                    <h3>Danh sách Món ăn</h3>
+                    <button class="btn btn-primary" onclick="openFoodModal('add')">+ Thêm món mới</button>
+                </div>
+
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                        <tr>
+                            <th>Ảnh</th>
+                            <th>Mã Món</th>
+                            <th>Tên Món</th>
+                            <th>Danh mục</th>
+                            <th>Giá bán</th>
+                            <th>Trạng thái</th>
+                            <th style="min-width: 130px;">Hành động</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td><img src="image/PhoBo.png" alt="Phở Bò"></td>
+                            <td style="color: #888;">#F016</td>
+                            <td style="font-weight: 600;">Phở Bò</td>
+                            <td>mon-chinh</td>
+                            <td style="font-weight: bold; color: var(--accent-color);">45.000đ</td>
+                            <td><span class="status-badge status-active">Đang bán</span></td>
+                            <td>
+                                <button class="action-btn" style="background: #f39c12;" title="Tạm ngưng bán" onclick="mockToggleStatus(16, true)"><i class="fa-solid fa-power-off"></i></button>
+                                <button class="action-btn btn-edit" title="Sửa" onclick="openFoodModal('edit', 16)"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button class="action-btn btn-delete" title="Xóa" onclick="mockDeleteFood(16)"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>
+                        <tr style="opacity: 0.7; background-color: #f9f9f9;">
+                            <td><img src="image/BunDau.png" alt="Bún Đậu"></td>
+                            <td style="color: #888;">#F012</td>
+                            <td style="font-weight: 600;">Bún Đậu</td>
+                            <td>mon-chinh</td>
+                            <td style="font-weight: bold; color: var(--accent-color);">35.000đ</td>
+                            <td><span class="status-badge status-inactive">Tạm ngưng</span></td>
+                            <td>
+                                <button class="action-btn" style="background: #27ae60;" title="Mở bán lại" onclick="mockToggleStatus(12, false)"><i class="fa-solid fa-power-off"></i></button>
+                                <button class="action-btn btn-edit" title="Sửa" onclick="openFoodModal('edit', 12)"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button class="action-btn btn-delete" title="Xóa" onclick="mockDeleteFood(12)"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-staff" style="display: none;">
+            <div class="table-container">
+                <div class="table-header-flex">
+                    <h3>Danh sách Nhân sự hệ thống</h3>
+                    <button class="btn btn-primary" onclick="openStaffModal('add')">+ Thêm nhân viên</button>
+                </div>
+
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                        <tr>
+                            <th>Mã NV</th>
+                            <th>Họ và Tên</th>
+                            <th>Tài khoản</th>
+                            <th>Vai trò</th>
+                            <th>Ngày tạo</th>
+                            <th>Trạng thái</th>
+                            <th style="min-width: 130px;">Hành động</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td style="font-weight: bold; color: #888;">#U001</td>
+                            <td style="font-weight: 600;">Nguyễn Ngọc Hoàng Nam</td>
+                            <td>admin123</td>
+                            <td><span style="background: #34495e; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem;">Admin</span></td>
+                            <td>10/10/2025</td>
+                            <td><span class="status-badge status-active">Hoạt động</span></td>
+                            <td>
+                                <button class="action-btn" style="background: #f39c12;" title="Khóa tài khoản" onclick="mockToggleStaffStatus(1, true)"><i class="fa-solid fa-lock"></i></button>
+                                <button class="action-btn btn-edit" title="Sửa" onclick="openStaffModal('edit', 1)"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button class="action-btn btn-delete" title="Xóa" onclick="mockDeleteStaff(1)"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>
+                        <tr style="opacity: 0.7; background-color: #f9f9f9;">
+                            <td style="font-weight: bold; color: #888;">#U002</td>
+                            <td style="font-weight: 600;">Trần Văn A</td>
+                            <td>staf123</td>
+                            <td><span style="background: #3498db; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem;">Staff</span></td>
+                            <td>15/10/2025</td>
+                            <td><span class="status-badge status-inactive">Đã khóa</span></td>
+                            <td>
+                                <button class="action-btn" style="background: #27ae60;" title="Mở khóa tài khoản" onclick="mockToggleStaffStatus(2, false)"><i class="fa-solid fa-lock-open"></i></button>
+                                <button class="action-btn btn-edit" title="Sửa" onclick="openStaffModal('edit', 2)"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button class="action-btn btn-delete" title="Xóa" onclick="mockDeleteStaff(2)"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</main>
+
+<div id="food-modal" class="modal-overlay">
+    <div class="modal-content-box">
+        <div class="modal-header-sticky">
+            <h2 id="modal-title">Thêm món ăn mới</h2>
+            <button onclick="closeFoodModal()">&times;</button>
+        </div>
+
+        <form id="food-form" onsubmit="mockSaveFood(event)">
+            <input type="hidden" id="food-id">
+
+            <div class="form-group">
+                <label class="form-label">Tên món ăn <span class="required">*</span></label>
+                <input type="text" id="food-name" class="form-control" required placeholder="Ví dụ: Cơm Tấm Sườn Bì">
+            </div>
+
+            <div class="form-group-flex">
+                <div>
+                    <label class="form-label">Giá bán (VNĐ) <span class="required">*</span></label>
+                    <input type="number" id="food-price" class="form-control" required min="0" placeholder="VD: 45000">
+                </div>
+                <div>
+                    <label class="form-label">Danh mục <span class="required">*</span></label>
+                    <select id="food-category" class="form-control" required>
+                        <option value="mon-chinh">Món chính</option>
+                        <option value="do-uong">Đồ uống</option>
+                        <option value="trang-mieng">Tráng miệng</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Đường dẫn ảnh (Image URL) <span class="required">*</span></label>
+                <input type="text" id="food-image" class="form-control" placeholder="VD: image/ComTam.png" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Mô tả ngắn</label>
+                <textarea id="food-desc" class="form-control" rows="3" placeholder="Nhập mô tả hấp dẫn cho món ăn..."></textarea>
+            </div>
+
+            <div class="checkbox-card">
+                <label>
+                    <input type="checkbox" id="food-available" checked>
+                    Trạng thái: Đang mở bán
+                </label>
+                <span class="form-help-text">Bỏ chọn nếu món này tạm thời hết nguyên liệu.</span>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" onclick="closeFoodModal()">Hủy bỏ</button>
+                <button type="submit" class="btn-save">Lưu Dữ Liệu</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="staff-modal" class="modal-overlay">
+    <div class="modal-content-box">
+        <div class="modal-header-sticky">
+            <h2 id="staff-modal-title">Thêm Nhân Viên Mới</h2>
+            <button onclick="closeStaffModal()">&times;</button>
+        </div>
+
+        <form id="staff-form" onsubmit="mockSaveStaff(event)">
+            <input type="hidden" id="staff-id">
+
+            <div class="form-group">
+                <label class="form-label">Họ và Tên đầy đủ <span class="required">*</span></label>
+                <input type="text" id="staff-fullname" class="form-control" required placeholder="VD: Nguyễn Văn A">
+            </div>
+
+            <div class="form-group-flex">
+                <div>
+                    <label class="form-label">Tên đăng nhập <span class="required">*</span></label>
+                    <input type="text" id="staff-username" class="form-control" required placeholder="Viết liền không dấu">
+                </div>
+                <div>
+                    <label class="form-label">Vai trò (Role) <span class="required">*</span></label>
+                    <select id="staff-role" class="form-control" required>
+                        <option value="Staff">Nhân viên (Staff)</option>
+                        <option value="Admin">Quản lý (Admin)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Mật khẩu (Password) <span class="required">*</span></label>
+                <input type="password" id="staff-password" class="form-control" required placeholder="Nhập mật khẩu...">
+                <small class="form-help-text">*Mật khẩu sẽ được mã hóa Bcrypt trước khi lưu vào Database.</small>
+            </div>
+
+            <div class="checkbox-card">
+                <label>
+                    <input type="checkbox" id="staff-active" checked>
+                    Trạng thái: Cho phép hoạt động (is_active)
+                </label>
+                <span class="form-help-text">Bỏ chọn để khóa tài khoản, không cho phép nhân viên đăng nhập.</span>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" onclick="closeStaffModal()">Hủy bỏ</button>
+                <button type="submit" class="btn-save">Lưu Dữ Liệu</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>
