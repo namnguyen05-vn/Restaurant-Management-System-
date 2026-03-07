@@ -6,9 +6,9 @@
     <title>Admin Dashboard - Healthy Food</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/CSS/style.css?v=1">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="Admin.js" defer></script>
+    <script src="/JS/Admin.js?v=1" defer></script>
 </head>
 <body class="admin-layout">
 
@@ -31,7 +31,7 @@
         <h2 id="page-title" style="color: var(--text-dark);">Tổng quan hệ thống</h2>
         <div>
             <span style="font-weight: 500; margin-right: 15px;">👋 Chào Admin,</span>
-            <img src="image/Flan.png" style="width: 40px; height: 40px; border-radius: 50%; vertical-align: middle;" alt="Admin Avatar">
+            <img src="/image/Flan.png" style="width: 40px; height: 40px; border-radius: 50%; vertical-align: middle;" alt="Admin Avatar">
         </div>
     </header>
 
@@ -84,32 +84,6 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr>
-                            <td><img src="image/PhoBo.png" alt="Phở Bò"></td>
-                            <td style="color: #888;">#F016</td>
-                            <td style="font-weight: 600;">Phở Bò</td>
-                            <td>mon-chinh</td>
-                            <td style="font-weight: bold; color: var(--accent-color);">45.000đ</td>
-                            <td><span class="status-badge status-active">Đang bán</span></td>
-                            <td>
-                                <button class="action-btn" style="background: #f39c12;" title="Tạm ngưng bán" onclick="mockToggleStatus(16, true)"><i class="fa-solid fa-power-off"></i></button>
-                                <button class="action-btn btn-edit" title="Sửa" onclick="openFoodModal('edit', 16)"><i class="fa-solid fa-pen-to-square"></i></button>
-                                <button class="action-btn btn-delete" title="Xóa" onclick="mockDeleteFood(16)"><i class="fa-solid fa-trash"></i></button>
-                            </td>
-                        </tr>
-                        <tr style="opacity: 0.7; background-color: #f9f9f9;">
-                            <td><img src="image/BunDau.png" alt="Bún Đậu"></td>
-                            <td style="color: #888;">#F012</td>
-                            <td style="font-weight: 600;">Bún Đậu</td>
-                            <td>mon-chinh</td>
-                            <td style="font-weight: bold; color: var(--accent-color);">35.000đ</td>
-                            <td><span class="status-badge status-inactive">Tạm ngưng</span></td>
-                            <td>
-                                <button class="action-btn" style="background: #27ae60;" title="Mở bán lại" onclick="mockToggleStatus(12, false)"><i class="fa-solid fa-power-off"></i></button>
-                                <button class="action-btn btn-edit" title="Sửa" onclick="openFoodModal('edit', 12)"><i class="fa-solid fa-pen-to-square"></i></button>
-                                <button class="action-btn btn-delete" title="Xóa" onclick="mockDeleteFood(12)"><i class="fa-solid fa-trash"></i></button>
-                            </td>
-                        </tr>
                         </tbody>
                     </table>
                 </div>
@@ -150,19 +124,6 @@
                                 <button class="action-btn btn-delete" title="Xóa" onclick="mockDeleteStaff(1)"><i class="fa-solid fa-trash"></i></button>
                             </td>
                         </tr>
-                        <tr style="opacity: 0.7; background-color: #f9f9f9;">
-                            <td style="font-weight: bold; color: #888;">#U002</td>
-                            <td style="font-weight: 600;">Trần Văn A</td>
-                            <td>staf123</td>
-                            <td><span style="background: #3498db; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem;">Staff</span></td>
-                            <td>15/10/2025</td>
-                            <td><span class="status-badge status-inactive">Đã khóa</span></td>
-                            <td>
-                                <button class="action-btn" style="background: #27ae60;" title="Mở khóa tài khoản" onclick="mockToggleStaffStatus(2, false)"><i class="fa-solid fa-lock-open"></i></button>
-                                <button class="action-btn btn-edit" title="Sửa" onclick="openStaffModal('edit', 2)"><i class="fa-solid fa-pen-to-square"></i></button>
-                                <button class="action-btn btn-delete" title="Xóa" onclick="mockDeleteStaff(2)"><i class="fa-solid fa-trash"></i></button>
-                            </td>
-                        </tr>
                         </tbody>
                     </table>
                 </div>
@@ -195,9 +156,9 @@
                 <div>
                     <label class="form-label">Danh mục <span class="required">*</span></label>
                     <select id="food-category" class="form-control" required>
-                        <option value="mon-chinh">Món chính</option>
-                        <option value="do-uong">Đồ uống</option>
-                        <option value="trang-mieng">Tráng miệng</option>
+                        <option value="1">Món chính</option>
+                        <option value="2">Đồ uống</option>
+                        <option value="3">Tráng miệng</option>
                     </select>
                 </div>
             </div>

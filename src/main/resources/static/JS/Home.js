@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!localStorage.getItem('restaurantMenu')) {
         localStorage.setItem('restaurantMenu', JSON.stringify(initialFoodDatabase));
     }
-    
+
     // 3. KHAI BÁO BIẾN `foodDatabase` DÙNG TỪ KHÓA `let` ĐỂ LẤY TỪ BỘ NHỚ RA (Quan trọng!)
     let foodDatabase = JSON.parse(localStorage.getItem('restaurantMenu')) || initialFoodDatabase;
 
@@ -47,11 +47,11 @@ document.addEventListener('DOMContentLoaded', function() {
         { id: 3, name: "Bàn 03", status: "empty" }, { id: 4, name: "Bàn 04", status: "empty" },
         { id: 5, name: "Bàn 05", status: "empty" }, { id: 6, name: "Bàn 06", status: "empty" }
     ];
-    
+
     // Hàm tiện ích: Format tiền kiểu Việt Nam (vd: 25000 -> "25.000đ")
     function formatMoney(amount) { return amount.toLocaleString('vi-VN') + 'đ'; }
 
-    // Hàm tiện ích: Sinh ra HTML của 1 món ăn 
+    // Hàm tiện ích: Sinh ra HTML của 1 món ăn
     function generateFoodCard(food) {
         const stars = '⭐'.repeat(food.rating);
         let actionButtons = `
@@ -87,41 +87,41 @@ document.addEventListener('DOMContentLoaded', function() {
        1. XỬ LÝ TRANG CHỦ: HIỂN THỊ MÓN NỔI BẬT & SLIDER
        ============================================================== */
     const sliderTrack = document.getElementById('popular-slider-track');
-    
+
     // Chuyển việc vẽ Slider thành 1 hàm để tái sử dụng khi update Real-time
     function renderSlider() {
         if (sliderTrack) {
             // Lấy lại dữ liệu mới nhất
             const currentFoods = JSON.parse(localStorage.getItem('restaurantMenu')) || foodDatabase;
             const popularFoods = currentFoods.filter(food => food.rating === 5 && food.IsAvailable);
-            sliderTrack.innerHTML = ''; 
+            sliderTrack.innerHTML = '';
             popularFoods.forEach(food => { sliderTrack.innerHTML += generateFoodCard(food); });
             initSlider();
         }
     }
-    
+
     renderSlider(); // Chạy lần đầu
 
     function initSlider() {
         const track = document.getElementById('popular-slider-track');
         if(!track) return; // Bảo vệ nếu đang ở trang Menu
 
-        const cards = track.querySelectorAll('.product-card'); 
+        const cards = track.querySelectorAll('.product-card');
         if(cards.length === 0) return;
 
         const nextBtn = document.querySelector('.nav-arrow.next');
         const prevBtn = document.querySelector('.nav-arrow.prev');
 
         let currentIndex = 0;
-        const cardWidth = 280; const gap = 30; const itemWidth = cardWidth + gap; 
-        
+        const cardWidth = 280; const gap = 30; const itemWidth = cardWidth + gap;
+
         const sliderContainer = document.querySelector('.slider-container');
         const itemsPerView = Math.floor(sliderContainer.offsetWidth / itemWidth);
-        const maxIndex = cards.length - itemsPerView > 0 ? cards.length - itemsPerView : 0; 
+        const maxIndex = cards.length - itemsPerView > 0 ? cards.length - itemsPerView : 0;
 
         function updateSlider() {
             if (currentIndex < 0) currentIndex = 0;
-            if (currentIndex > maxIndex) currentIndex = 0; 
+            if (currentIndex > maxIndex) currentIndex = 0;
             track.style.transform = `translateX(${-(currentIndex * itemWidth)}px)`;
         }
 
@@ -151,8 +151,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentSearchWord = '';
 
     function renderMenu(itemsToRender) {
-        if (!menuContainer) return; 
-        menuContainer.innerHTML = ''; 
+        if (!menuContainer) return;
+        menuContainer.innerHTML = '';
         if (itemsToRender.length === 0) {
             menuContainer.innerHTML = `<h3 style="grid-column: 1/-1; text-align: center; color: #888; padding: 50px;">Không tìm thấy món ăn nào!</h3>`;
             return;
@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.applyFilters = function() {
         // Cập nhật lại kho dữ liệu mới nhất
         foodDatabase = JSON.parse(localStorage.getItem('restaurantMenu')) || initialFoodDatabase;
-        let filteredData = foodDatabase; 
+        let filteredData = foodDatabase;
 
         if (currentCategory !== 'all') filteredData = filteredData.filter(food => food.CategoryID === currentCategory);
         if (currentSearchWord !== '') filteredData = filteredData.filter(food => food.Name.toLowerCase().includes(currentSearchWord));
@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 filterBtns.forEach(b => b.classList.remove('active-filter'));
                 this.classList.add('active-filter');
                 currentCategory = this.getAttribute('data-filter');
-                window.applyFilters(); 
+                window.applyFilters();
             });
         });
     }
@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         searchInput.addEventListener('input', function() {
             currentSearchWord = this.value.toLowerCase().trim();
-            window.applyFilters(); 
+            window.applyFilters();
         });
     }
 
@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const loginBtn = document.getElementById("login-btn");
     const closeBtn = document.querySelector(".close-modal");
 
-    if (modal && loginBtn && closeBtn) { 
+    if (modal && loginBtn && closeBtn) {
         loginBtn.addEventListener('click', function(e) { e.preventDefault(); modal.style.display = "flex"; });
         closeBtn.addEventListener('click', function() { modal.style.display = "none"; });
         window.addEventListener('click', function(e) { if (e.target == modal) { modal.style.display = "none"; } });
@@ -218,17 +218,17 @@ document.addEventListener('DOMContentLoaded', function() {
             pwdInput.setAttribute("type", type);
             this.classList.toggle("fa-eye-slash");
             this.classList.toggle("fa-eye");
-            this.style.color = type === "text" ? "var(--primary-color)" : "#888"; 
+            this.style.color = type === "text" ? "var(--primary-color)" : "#888";
         });
     }
 
     /* ==============================================================
        6 & 7. XỬ LÝ GIỎ HÀNG VÀ TRẠNG THÁI ĐƠN HÀNG TẠI BÀN
        ============================================================== */
-    
-    let cart = JSON.parse(localStorage.getItem('healthyFoodCart_v3')) || []; 
-    let orderStatus = localStorage.getItem('tableStatus_v3') || 'ordering'; 
-    
+
+    let cart = JSON.parse(localStorage.getItem('healthyFoodCart_v3')) || [];
+    let orderStatus = localStorage.getItem('tableStatus_v3') || 'ordering';
+
     const tableSelector = document.getElementById('table-selector');
     const cartSidebar = document.getElementById('cart-sidebar');
     const cartOverlay = document.getElementById('cart-overlay');
@@ -237,7 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const cartItemsContainer = document.getElementById('cart-items-container');
     const cartTotalPrice = document.getElementById('cart-total-price');
     const cartBadge = document.getElementById('cart-badge');
-    
+
     const orderBtn = document.getElementById('order-btn');
     const orderStatusBtn = document.getElementById('order-status-btn');
     const noteContainer = document.getElementById('note-container');
@@ -272,7 +272,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     window.changeQuantity = function(foodId, delta) {
-        if (orderStatus !== 'ordering') return; 
+        if (orderStatus !== 'ordering') return;
         const item = cart.find(i => i.FoodID === foodId);
         if (item) {
             item.quantity += delta;
@@ -308,46 +308,46 @@ document.addEventListener('DOMContentLoaded', function() {
         if (orderBtn && orderStatusBtn && noteContainer) {
             if (cart.length === 0) {
                 orderStatusBtn.style.display = 'none';
-                noteContainer.style.display = 'block'; 
-                orderBtn.innerText = 'Gọi món'; 
+                noteContainer.style.display = 'block';
+                orderBtn.innerText = 'Gọi món';
                 orderBtn.style.backgroundColor = 'var(--primary-color)';
-                orderBtn.style.cursor = 'pointer'; 
-                orderBtn.disabled = false; 
+                orderBtn.style.cursor = 'pointer';
+                orderBtn.disabled = false;
             } else {
                 orderStatusBtn.style.display = 'block';
-                
+
                 if (orderStatus === 'ordering') {
                     orderStatusBtn.innerText = 'Đang chọn món...';
-                    orderStatusBtn.className = 'status-btn'; 
+                    orderStatusBtn.className = 'status-btn';
                     orderBtn.innerText = 'Gọi món';
                     orderBtn.style.backgroundColor = 'var(--primary-color)';
                     orderBtn.style.cursor = 'pointer';
                     orderBtn.disabled = false;
-                    noteContainer.style.display = 'block'; 
-                } 
+                    noteContainer.style.display = 'block';
+                }
                 else if (orderStatus === 'pending') {
                     orderStatusBtn.innerText = 'Chờ nhân viên xác nhận';
-                    orderStatusBtn.className = 'status-btn status-preparing'; 
+                    orderStatusBtn.className = 'status-btn status-preparing';
                     orderBtn.innerText = 'Đã gửi yêu cầu...';
                     orderBtn.style.backgroundColor = '#95a5a6';
                     orderBtn.style.cursor = 'not-allowed';
                     orderBtn.disabled = true;
-                    noteContainer.style.display = 'none'; 
+                    noteContainer.style.display = 'none';
                 }
                 else if (orderStatus === 'cooking') {
                     orderStatusBtn.innerText = 'Bếp đang làm món';
-                    orderStatusBtn.className = 'status-btn status-preparing'; 
+                    orderStatusBtn.className = 'status-btn status-preparing';
                     orderBtn.innerText = 'Vui lòng đợi trong giây lát...';
                     orderBtn.style.backgroundColor = '#95a5a6';
                     orderBtn.style.cursor = 'not-allowed';
                     orderBtn.disabled = true;
-                    noteContainer.style.display = 'none'; 
+                    noteContainer.style.display = 'none';
                 }
                 else if (orderStatus === 'served') {
                     orderStatusBtn.innerText = 'Đã phục vụ';
-                    orderStatusBtn.className = 'status-btn status-served'; 
+                    orderStatusBtn.className = 'status-btn status-served';
                     orderBtn.innerText = 'Yêu cầu thanh toán';
-                    orderBtn.style.backgroundColor = '#d35400'; 
+                    orderBtn.style.backgroundColor = '#d35400';
                     orderBtn.style.cursor = 'pointer';
                     orderBtn.disabled = false;
                     noteContainer.style.display = 'none';
@@ -355,7 +355,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 else if (orderStatus === 'payment_requested') {
                     orderStatusBtn.innerText = 'Đang gọi thanh toán';
                     orderStatusBtn.className = 'status-btn';
-                    orderStatusBtn.style.backgroundColor = '#8e44ad'; 
+                    orderStatusBtn.style.backgroundColor = '#8e44ad';
                     orderBtn.innerText = 'Thu ngân đang tới bàn...';
                     orderBtn.style.backgroundColor = '#95a5a6';
                     orderBtn.style.cursor = 'not-allowed';
@@ -365,12 +365,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 else if (orderStatus === 'cancelled') {
                     const reason = localStorage.getItem('tableNote_v3') || 'Không rõ';
                     alert(`❌ Đơn hàng của bạn đã bị hủy bởi nhân viên.\nLý do: ${reason}\n\nVui lòng chọn lại món!`);
-                    
+
                     cart = [];
                     orderStatus = 'ordering';
                     localStorage.removeItem('tableNote_v3');
-                    updateCartUI(); 
-                    return; 
+                    updateCartUI();
+                    return;
                 }
             }
         }
@@ -378,15 +378,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (cart.length === 0) {
             if(cartItemsContainer) cartItemsContainer.innerHTML = '<div style="text-align: center; color: #888; margin-top: 50px;">Bàn chưa gọi món nào</div>';
             if(cartTotalPrice) cartTotalPrice.innerText = '0đ';
-            return; 
+            return;
         }
 
-        let html = ''; let totalAmount = 0; let isLocked = (orderStatus !== 'ordering'); 
+        let html = ''; let totalAmount = 0; let isLocked = (orderStatus !== 'ordering');
 
         cart.forEach(item => {
             totalAmount += item.CurrentPrice * item.quantity;
-            const controlHTML = isLocked 
-                ? `<div class="locked-qty">x${item.quantity}</div>` 
+            const controlHTML = isLocked
+                ? `<div class="locked-qty">x${item.quantity}</div>`
                 : `<div class="qty-control">
                         <button class="qty-btn" onclick="changeQuantity(${item.FoodID}, -1)">-</button>
                         <input type="text" class="qty-input" value="${item.quantity}" readonly>
@@ -418,7 +418,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (orderStatus === 'ordering') {
                 if (tableSelector && tableSelector.value === "") {
                     alert("Vui lòng chọn bàn bạn đang ngồi trước khi gọi món!");
-                    return; 
+                    return;
                 }
 
                 let selectedTableId = tableSelector.value;
@@ -432,11 +432,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 let note = orderNotes ? orderNotes.value.trim() : '';
-                localStorage.setItem('tableNote_v3', note); 
+                localStorage.setItem('tableNote_v3', note);
                 orderStatus = 'pending';
                 updateCartUI();
                 alert(`🔔 Đã gửi hóa đơn đến nhà bếp!`);
-            } 
+            }
             else if (orderStatus === 'served') {
                 alert('💳 Đã gửi thông báo tính tiền đến thu ngân. Nhân viên sẽ tới bàn ngay!');
                 orderStatus = 'payment_requested';
@@ -451,21 +451,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // 🌟 MA THUẬT REAL-TIME TRÊN FRONTEND (BỔ SUNG THÊM LẮNG NGHE ADMIN)
     // ====================================================================
     window.addEventListener('storage', function(event) {
-        
+
         // 1. Lắng nghe Nhân viên thay đổi trạng thái đơn hàng hoặc bàn
         if (event.key === 'tableStatus_v3' || event.key === 'healthyFoodCart_v3' || event.key === 'restaurantTables') {
             orderStatus = localStorage.getItem('tableStatus_v3') || 'ordering';
             cart = JSON.parse(localStorage.getItem('healthyFoodCart_v3')) || [];
-            updateCartUI(true); 
+            updateCartUI(true);
         }
 
         // 2. Lắng nghe Admin thay đổi thực đơn
         if (event.key === 'restaurantMenu') {
             // Cập nhật lại lưới Menu ngay lập tức (nếu đang ở trang Menu)
             if (typeof window.applyFilters === 'function') {
-                window.applyFilters(); 
+                window.applyFilters();
             }
-            
+
             // Cập nhật lại thanh Slider (nếu đang ở trang Home)
             renderSlider();
         }
