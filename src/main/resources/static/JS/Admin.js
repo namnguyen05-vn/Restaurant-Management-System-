@@ -1,20 +1,66 @@
 // ==========================================
+// 0. CHỐT CHẶN BẢO MẬT (AUTH GUARD) VÀ ĐĂNG XUẤT
+// ==========================================
+const loggedInUserStr = localStorage.getItem('loggedInUser');
+
+// 1. Kiểm tra xem có vé (đã đăng nhập) chưa?
+if (!loggedInUserStr) {
+    alert("🔒 Vui lòng đăng nhập để truy cập trang Quản trị!");
+    window.location.href = "home.html"; // Đổi thành tên file trang chủ của bạn nếu cần
+} else {
+    const currentUser = JSON.parse(loggedInUserStr);
+
+    // 2. Kiểm tra xem vé có đúng là của Admin không?
+    if (currentUser.role !== 'Admin') {
+        alert("⛔ Bạn không có quyền truy cập khu vực của Quản lý!");
+        // Nếu là Staff thì đẩy về trang Staff, không thì đẩy ra Home
+        window.location.href = currentUser.role === 'Staff' ? "Staff.html" : "home.html";
+    } else {
+        // 3. Nếu hợp lệ, tự động in tên Admin lên góc phải màn hình cho xịn!
+        document.addEventListener('DOMContentLoaded', () => {
+            const greetingElement = document.querySelector('.admin-header-top span');
+            if (greetingElement) {
+                greetingElement.innerHTML = `👋 Chào Quản lý, <b style="color: var(--primary-color);">${currentUser.fullName}</b>`;
+            }
+        });
+    }
+}
+
+// ==========================================
+// XỬ LÝ NÚT ĐĂNG XUẤT
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    const logoutBtn = document.querySelector('.admin-menu li:last-child');
+    if (logoutBtn) {
+        // Biến nút này thành con trỏ chuột bấm được
+        logoutBtn.style.cursor = 'pointer';
+
+        logoutBtn.addEventListener('click', function() {
+            if (confirm("Bạn có chắc chắn muốn thoát khỏi hệ thống?")) {
+                localStorage.removeItem('loggedInUser'); // Xé vé
+                window.location.href = "home.html"; // Đẩy ra ngoài
+            }
+        });
+    }
+});
+// ==========================================
 // CẤU HÌNH API
 // ==========================================
 const API_FOOD_URL = "http://localhost:8080/api/foods";
+const API_USER_URL = "http://localhost:8080/api/users";
+const API_TABLE_URL = "http://localhost:8080/api/tables";
 
 // ==========================================
 // 1. LOGIC CHUYỂN TAB (GIAO DIỆN)
 // ==========================================
 function switchTab(activeMenuId, activeTabId, title) {
-    // Ẩn tất cả menu và tab
-    const menus = ['menu-dashboard', 'menu-food', 'menu-staff'];
-    const tabs = ['tab-dashboard', 'tab-food', 'tab-staff'];
+    // THÊM 'menu-table' VÀ 'tab-table' VÀO MẢNG
+    const menus = ['menu-dashboard', 'menu-food', 'menu-staff', 'menu-table'];
+    const tabs = ['tab-dashboard', 'tab-food', 'tab-staff', 'tab-table'];
 
     menus.forEach(id => document.getElementById(id).classList.remove('active-tab'));
     tabs.forEach(id => document.getElementById(id).style.display = 'none');
 
-    // Bật menu và tab được chọn
     document.getElementById(activeMenuId).classList.add('active-tab');
     document.getElementById(activeTabId).style.display = 'block';
     document.getElementById('page-title').innerText = title;
@@ -235,70 +281,336 @@ function mockSaveFood(event) {
         .catch(error => console.error("Lỗi SAVE:", error));
 }
 
-
-// ==========================================
-// 4. ĐIỀU KHIỂN GIAO DIỆN MÔ PHỎNG (NHÂN VIÊN)
-// ==========================================
+// ==========================================================
+// 4. QUẢN LÝ TÀI KHOẢN NHÂN VIÊN (API THỰC TẾ)
+// ==========================================================
 const staffModal = document.getElementById('staff-modal');
 const staffForm = document.getElementById('staff-form');
 
+// 4.1 Tải danh sách nhân viên từ Database
+function loadStaffs() {
+    fetch(API_USER_URL)
+        .then(response => {
+            if (!response.ok) throw new Error("Lỗi tải danh sách nhân viên");
+            return response.json();
+        })
+        .then(staffs => renderStaffTable(staffs))
+        .catch(error => console.error("Lỗi:", error));
+}
+
+// 4.2 Vẽ bảng dữ liệu nhân viên
+function renderStaffTable(staffs) {
+    const tbody = document.querySelector("#tab-staff .data-table tbody");
+    if (staffs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px;">Chưa có nhân viên nào!</td></tr>`;
+        return;
+    }
+
+    let htmlContent = "";
+    // Lấy thông tin người đang đăng nhập để tránh việc tự xóa/khóa chính mình
+    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+
+    staffs.forEach(staff => {
+        const isMe = loggedInUser && loggedInUser.id === staff.id;
+        const roleClass = staff.role === 'Admin' ? 'background: #34495e;' : 'background: #3498db;';
+        const statusClass = staff.isActive ? "status-active" : "status-inactive";
+        const statusText = staff.isActive ? "Hoạt động" : "Đã khóa";
+        const rowStyle = !staff.isActive ? 'style="opacity: 0.7; background-color: #f9f9f9;"' : '';
+
+        // Xử lý nút Khóa/Mở khóa
+        const toggleBtn = isMe
+            ? `<button class="action-btn" style="background: #bdc3c7; cursor: not-allowed;" title="Không thể tự khóa mình"><i class="fa-solid fa-lock"></i></button>`
+            : `<button class="action-btn" style="background: ${staff.isActive ? '#f39c12' : '#27ae60'};" title="${staff.isActive ? 'Khóa tài khoản' : 'Mở khóa'}" onclick="toggleStaffStatusAPI(${staff.id}, '${staff.username}', ${staff.isActive})"><i class="fa-solid ${staff.isActive ? 'fa-lock' : 'fa-lock-open'}"></i></button>`;
+
+        // Xử lý nút Xóa
+        const deleteBtn = isMe
+            ? `<button class="action-btn" style="background: #bdc3c7; cursor: not-allowed;" title="Không thể tự xóa mình"><i class="fa-solid fa-trash"></i></button>`
+            : `<button class="action-btn btn-delete" title="Xóa" onclick="deleteStaffAPI(${staff.id}, '${staff.username}')"><i class="fa-solid fa-trash"></i></button>`;
+
+        htmlContent += `
+            <tr ${rowStyle}>
+                <td style="font-weight: bold; color: #888;">#U00${staff.id}</td>
+                <td style="font-weight: 600;">${staff.fullName} ${isMe ? '<span style="color:red; font-size:12px;">(Bạn)</span>' : ''}</td>
+                <td>${staff.username}</td>
+                <td><span style="${roleClass} color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem;">${staff.role}</span></td>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                <td>
+                    ${toggleBtn}
+                    <button class="action-btn btn-edit" title="Sửa" onclick="openStaffModal('edit', ${staff.id})"><i class="fa-solid fa-pen-to-square"></i></button>
+                    ${deleteBtn}
+                </td>
+            </tr>
+        `;
+    });
+    tbody.innerHTML = htmlContent;
+}
+
+// 4.3 Đảo trạng thái Khóa/Mở khóa
+function toggleStaffStatusAPI(userId, username, isActive) {
+    const actionText = isActive ? "KHÓA" : "MỞ KHÓA";
+    if (confirm(`Bạn có chắc muốn ${actionText} tài khoản "${username}" không?`)) {
+        fetch(`${API_USER_URL}/${userId}/status`, { method: 'PUT' })
+            .then(res => {
+                if (res.ok) loadStaffs();
+                else alert("Lỗi khi cập nhật trạng thái!");
+            });
+    }
+}
+
+// 4.4 Xóa nhân viên
+function deleteStaffAPI(userId, username) {
+    if (confirm(`CẢNH BÁO: Bạn có chắc muốn xóa VĨNH VIỄN tài khoản "${username}" không?`)) {
+        fetch(`${API_USER_URL}/${userId}`, { method: 'DELETE' })
+            .then(res => {
+                if (res.ok) {
+                    alert("Đã xóa thành công!");
+                    loadStaffs();
+                } else alert("Lỗi khi xóa nhân viên!");
+            });
+    }
+}
+
+// 4.5 Điều khiển Popup (Load data khi Sửa)
 function openStaffModal(mode, userId = null) {
     staffForm.reset();
     if (mode === 'add') {
         document.getElementById('staff-modal-title').innerText = "Thêm Nhân Viên Mới";
         document.getElementById('staff-id').value = "";
+
+        // Bắt buộc nhập pass khi thêm mới
         document.getElementById('staff-password').required = true;
+        document.getElementById('staff-password').placeholder = "Nhập mật khẩu...";
+        staffModal.style.display = 'flex';
     } else if (mode === 'edit') {
         document.getElementById('staff-modal-title').innerText = "Chỉnh sửa Nhân viên #U00" + userId;
         document.getElementById('staff-id').value = userId;
+
+        // Không bắt buộc nhập pass khi sửa (Nếu để trống = Giữ nguyên pass cũ)
         document.getElementById('staff-password').required = false;
+        document.getElementById('staff-password').placeholder = "Bỏ trống nếu không đổi mật khẩu";
+
+        document.getElementById('staff-fullname').value = "Đang tải...";
+        staffModal.style.display = 'flex';
+
+        fetch(`${API_USER_URL}/${userId}`)
+            .then(res => res.json())
+            .then(user => {
+                document.getElementById('staff-fullname').value = user.fullName;
+                document.getElementById('staff-username').value = user.username;
+                document.getElementById('staff-role').value = user.role;
+                document.getElementById('staff-active').checked = user.isActive;
+            });
     }
-    staffModal.style.display = 'flex';
 }
 
 function closeStaffModal() {
     staffModal.style.display = 'none';
 }
 
+// 4.6 Lưu hoặc Cập nhật Nhân viên
 function mockSaveStaff(event) {
     event.preventDefault();
-    alert("Mô phỏng Lưu Nhân Viên!");
-    closeStaffModal();
-}
+    const id = document.getElementById('staff-id').value;
 
-function mockToggleStaffStatus(userId, isCurrentlyActive) {
-    alert("Mô phỏng Khóa/Mở Khóa Nhân Viên!");
-}
+    // Gom dữ liệu từ form
+    const data = {
+        fullName: document.getElementById('staff-fullname').value,
+        username: document.getElementById('staff-username').value,
+        role: document.getElementById('staff-role').value,
+        isActive: document.getElementById('staff-active').checked
+    };
 
-function mockDeleteStaff(userId) {
-    alert("Mô phỏng Xóa Nhân Viên!");
-}
+    // Nếu có nhập mật khẩu mới thì mới đính kèm vào cục hàng để gửi đi
+    const password = document.getElementById('staff-password').value;
+    if (password) {
+        data.password = password;
+    }
 
+    const method = id === "" ? "POST" : "PUT";
+    const url = id === "" ? API_USER_URL : `${API_USER_URL}/${id}`;
 
-// ==========================================
-// 5. DOANH THU & DASHBOARD
-// ==========================================
-function updateDashboardStats() {
-    const revenueEl = document.getElementById('stat-revenue');
-    const ordersEl = document.getElementById('stat-orders');
-    if (revenueEl) revenueEl.innerText = (parseInt(localStorage.getItem('restaurantRevenue')) || 0).toLocaleString('vi-VN') + 'đ';
-    if (ordersEl) ordersEl.innerText = (parseInt(localStorage.getItem('restaurantTotalOrders')) || 0) + ' đơn';
-}
-
-function initChart() {
-    const ctx = document.getElementById('revenueChart');
-    if (ctx) {
-        new Chart(ctx.getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'],
-                datasets: [{ label: 'Doanh thu (VNĐ)', data: [3200000, 2800000, 3500000, 4100000, 4800000, 6500000, 7200000], backgroundColor: '#047857', borderRadius: 5 }]
-            },
-            options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+        .then(async response => {
+            if (response.ok) {
+                alert(id === "" ? "Đã tạo tài khoản thành công!" : "Cập nhật thành công!");
+                closeStaffModal();
+                loadStaffs(); // Tải lại bảng
+            } else {
+                const err = await response.text();
+                alert("❌ Lỗi: " + err);
+            }
         });
+}
+
+// ==========================================================
+// 5. QUẢN LÝ BÀN ĂN (API THỰC TẾ)
+// ==========================================================
+const tableModal = document.getElementById('table-modal');
+const tableForm = document.getElementById('table-form');
+
+function loadTables() {
+    fetch(API_TABLE_URL)
+        .then(res => res.json())
+        .then(tables => renderTableGrid(tables))
+        .catch(err => console.error("Lỗi tải danh sách bàn:", err));
+}
+
+function renderTableGrid(tables) {
+    const tbody = document.querySelector("#tab-table .data-table tbody");
+    if (tables.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px;">Chưa thiết lập bàn nào!</td></tr>`;
+        return;
+    }
+
+    let html = "";
+    tables.forEach(table => {
+        const usageText = table.status === 'Empty'
+            ? '<span style="color: #27ae60; font-weight: bold;">Trống</span>'
+            : '<span style="color: #e74c3c; font-weight: bold;">Đang phục vụ</span>';
+
+        html += `
+            <tr>
+                <td style="color: #888; font-weight: bold;">#T00${table.id}</td>
+                <td style="font-weight: 600; font-size: 1.1rem;">${table.tableNumber}</td>
+                <td>${usageText}</td>
+                <td>
+                    <button class="action-btn btn-edit" title="Sửa" onclick="openTableModal('edit', ${table.id})"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button class="action-btn btn-delete" title="Xóa" onclick="deleteTableAPI(${table.id}, '${table.tableNumber}')"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            </tr>
+        `;
+    });
+    tbody.innerHTML = html;
+}
+
+function deleteTableAPI(id, name) {
+    if (confirm(`CẢNH BÁO: Xóa vĩnh viễn ${name}?`)) {
+        fetch(`${API_TABLE_URL}/${id}`, { method: 'DELETE' }).then(() => loadTables());
     }
 }
 
+function openTableModal(mode, id = null) {
+    tableForm.reset();
+    if (mode === 'add') {
+        document.getElementById('table-modal-title').innerText = "Thêm Bàn Mới";
+        document.getElementById('table-id').value = "";
+        document.getElementById('group-table-status').style.display = 'none'; // Mới thêm thì mặc định là trống
+        tableModal.style.display = 'flex';
+    } else {
+        document.getElementById('table-modal-title').innerText = "Sửa " + id;
+        document.getElementById('table-id').value = id;
+        document.getElementById('group-table-status').style.display = 'block';
+        tableModal.style.display = 'flex';
+
+        fetch(`${API_TABLE_URL}/${id}`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('table-name').value = data.tableNumber;
+                document.getElementById('table-status').value = data.status;
+            });
+    }
+}
+
+function closeTableModal() { tableModal.style.display = 'none'; }
+
+function mockSaveTable(event) {
+    event.preventDefault();
+    const id = document.getElementById('table-id').value;
+    const data = {
+        tableNumber: document.getElementById('table-name').value,
+        status: id === "" ? "Empty" : document.getElementById('table-status').value
+    };
+
+    const method = id === "" ? "POST" : "PUT";
+    const url = id === "" ? API_TABLE_URL : `${API_TABLE_URL}/${id}`;
+
+    fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    }).then(res => {
+        if (res.ok) { closeTableModal(); loadTables(); }
+        else alert("Lỗi lưu bàn!");
+    });
+}
+
+// ==========================================
+// 6. DOANH THU & DASHBOARD (TỪ API)
+// ==========================================
+const API_DASHBOARD_URL = "http://localhost:8080/api/dashboard";
+let revenueChart; // Biến toàn cục để lưu biểu đồ
+
+function updateDashboardStats() {
+    fetch(`${API_DASHBOARD_URL}/stats`)
+        .then(res => res.json())
+        .then(stats => {
+            const revenueEl = document.getElementById('stat-revenue');
+            const ordersEl = document.getElementById('stat-orders');
+            // Lấy tất cả các thẻ hiển thị số lượng
+            const statValues = document.querySelectorAll('.stat-info .value');
+
+            if (revenueEl) revenueEl.innerText = (stats.revenue || 0).toLocaleString('vi-VN') + 'đ';
+            if (ordersEl) ordersEl.innerText = (stats.orders || 0) + ' đơn';
+
+            // Cập nhật số món ăn và số bàn
+            if (statValues.length >= 4) {
+                statValues[2].innerText = (stats.foods || 0) + ' món';
+                statValues[3].innerText = (stats.tables || 0) + ' bàn';
+            }
+        })
+        .catch(err => console.error("Lỗi tải thống kê:", err));
+}
+
+function initChart() {
+    fetch(`${API_DASHBOARD_URL}/chart`)
+        .then(res => res.json())
+        .then(data => {
+            const ctx = document.getElementById('revenueChart');
+            if (!ctx) return;
+
+            // Tự động sinh tên ngày cho 7 ngày gần nhất (VD: 25/10, 26/10...)
+            const labels = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                labels.push(d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }));
+            }
+
+            // Xóa biểu đồ cũ trước khi vẽ mới để không bị lỗi đè hình
+            if (revenueChart) {
+                revenueChart.destroy();
+            }
+
+            revenueChart = new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Doanh thu (VNĐ)',
+                        data: data,
+                        backgroundColor: '#047857',
+                        borderRadius: 5,
+                        maxBarThickness: 50 // BỔ SUNG DÒNG NÀY ĐỂ CỘT KHÔNG BỊ BÉO PHÌ
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Giữ nguyên dòng này
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0 } // Tránh trục Y hiển thị số thập phân
+                        }
+                    }
+                }
+            });
+        })
+        .catch(err => console.error("Lỗi tải biểu đồ:", err));
+}
 
 // ==========================================
 // THỰC THI NGAY KHI TRANG WEB TẢI XONG
@@ -308,14 +620,12 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('menu-dashboard').addEventListener('click', () => switchTab('menu-dashboard', 'tab-dashboard', 'Tổng quan hệ thống'));
     document.getElementById('menu-food').addEventListener('click', () => switchTab('menu-food', 'tab-food', 'Quản lý Thực đơn'));
     document.getElementById('menu-staff').addEventListener('click', () => switchTab('menu-staff', 'tab-staff', 'Quản lý Nhân viên'));
+    document.getElementById('menu-table').addEventListener('click', () => switchTab('menu-table', 'tab-table', 'Quản lý Cơ sở vật chất'));
 
     // 2. Tải dữ liệu và vẽ biểu đồ
-    loadFoods(); // GỌI API LẤY MÓN ĂN TỪ SPRING BOOT
+    loadFoods();
+    loadStaffs();
+    loadTables();
     updateDashboardStats();
     initChart();
-
-    // 3. Lắng nghe thay đổi doanh thu (từ tab thu ngân)
-    window.addEventListener('storage', function(event) {
-        if (event.key === 'restaurantRevenue' || event.key === 'restaurantTotalOrders') updateDashboardStats();
-    });
 });

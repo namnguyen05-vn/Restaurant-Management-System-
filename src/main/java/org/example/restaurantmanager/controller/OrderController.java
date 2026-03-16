@@ -1,0 +1,114 @@
+package org.example.restaurantmanager.controller;
+
+import org.example.restaurantmanager.dto.OrderRequestDTO;
+import org.example.restaurantmanager.dto.OrderItemDTO;
+import org.example.restaurantmanager.model.*;
+import org.example.restaurantmanager.repository.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/api/orders")
+@CrossOrigin(origins = "*")
+public class OrderController {
+
+    @Autowired private OrderRepository orderRepository;
+    @Autowired private RestaurantTableRepository tableRepository;
+    @Autowired private FoodRepository foodRepository;
+    @Autowired private UserRepository userRepository;
+
+    // 1. API TẠO ĐƠN HÀNG MỚI (TỪ FRONTEND GỬI LÊN)
+    @PostMapping
+    public ResponseEntity<?> createOrder(@RequestBody OrderRequestDTO request) {
+        // Kiểm tra xem Bàn có tồn tại không
+        Optional<RestaurantTable> tableOpt = tableRepository.findById(request.getTableId());
+        if (tableOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body("Bàn không tồn tại!");
+        }
+
+        RestaurantTable table = tableOpt.get();
+
+        // =======================================================
+        // CHỐT CHẶN RACE CONDITION (BẢO VỆ CHỐNG ĐỤNG ĐỘ DỮ LIỆU)
+        // Nếu bàn đã có người ngồi (Occupied) thì lập tức chặn lại và báo lỗi 400
+        // =======================================================
+        if ("Occupied".equals(table.getStatus())) {
+            return ResponseEntity.badRequest().body("Bàn này đã có người đặt trước bạn một bước. Vui lòng chọn bàn khác!");
+        }
+
+        // Khởi tạo một Đơn hàng mới
+        Order newOrder = new Order();
+        newOrder.setTable(table);
+        newOrder.setStatus("Pending"); // Trạng thái chờ bếp xác nhận
+        newOrder.setNote(request.getNote());
+
+        // Nếu có nhân viên tạo đơn thì gắn vào
+        if (request.getUserId() != null) {
+            userRepository.findById(request.getUserId()).ifPresent(newOrder::setUser);
+        }
+
+        int totalAmount = 0;
+        List<OrderDetail> detailList = new ArrayList<>();
+
+        // Lặp qua từng món ăn khách đặt
+        for (OrderItemDTO itemDTO : request.getItems()) {
+            Optional<Food> foodOpt = foodRepository.findById(itemDTO.getFoodId());
+            if (foodOpt.isPresent()) {
+                Food food = foodOpt.get();
+
+                OrderDetail detail = new OrderDetail();
+                detail.setOrder(newOrder); // Bắt buộc: Gắn chi tiết này thuộc về hóa đơn nào
+                detail.setFood(food);
+                detail.setQuantity(itemDTO.getQuantity());
+                detail.setUnitPrice(food.getCurrentPrice()); // Chốt giá tiền tại thời điểm gọi
+                detail.setNote(itemDTO.getNote());
+                detail.setStatus("Pending");
+
+                // Cộng dồn tổng tiền
+                totalAmount += (food.getCurrentPrice() * itemDTO.getQuantity());
+                detailList.add(detail);
+            }
+        }
+
+        // Gắn danh sách chi tiết vào đơn hàng và lưu tổng tiền
+        newOrder.setOrderDetails(detailList);
+        newOrder.setTotalAmount(totalAmount);
+
+        // Lưu đơn hàng vào Database
+        Order savedOrder = orderRepository.save(newOrder);
+
+        // Cập nhật trạng thái bàn thành "Có khách"
+        table.setStatus("Occupied");
+        tableRepository.save(table);
+
+        return ResponseEntity.ok(savedOrder);
+    }
+
+    // 2. API LẤY DANH SÁCH ĐƠN HÀNG (DÀNH CHO NHÂN VIÊN/QUẢN LÝ)
+    @GetMapping
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
+    }
+
+    // 3. API CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG (VD: Bếp nấu xong -> "Served")
+    @PutMapping("/{orderId}/status")
+    public ResponseEntity<?> updateOrderStatus(@PathVariable Long orderId, @RequestParam String status) {
+        return orderRepository.findById(orderId).map(order -> {
+            order.setStatus(status);
+
+            // Nếu đơn hàng thanh toán xong (Paid) hoặc Bị hủy (Cancelled), giải phóng bàn
+            if (status.equals("Paid") || status.equals("Cancelled")) {
+                RestaurantTable table = order.getTable();
+                table.setStatus("Empty");
+                tableRepository.save(table);
+            }
+
+            return ResponseEntity.ok(orderRepository.save(order));
+        }).orElse(ResponseEntity.notFound().build());
+    }
+}

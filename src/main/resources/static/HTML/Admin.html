@@ -20,6 +20,7 @@
         <li id="menu-dashboard" class="active-tab"><i class="fa-solid fa-chart-pie"></i> Tổng quan & Doanh thu</li>
         <li id="menu-food"><i class="fa-solid fa-burger"></i> Quản lý Thực đơn</li>
         <li id="menu-staff"><i class="fa-solid fa-users-gear"></i> Quản lý Nhân viên</li>
+        <li id="menu-table"><i class="fa-solid fa-chair"></i> Quản lý Bàn</li>
         <li style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1);">
             <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất
         </li>
@@ -30,7 +31,7 @@
     <header class="admin-header-top">
         <h2 id="page-title" style="color: var(--text-dark);">Tổng quan hệ thống</h2>
         <div>
-            <span style="font-weight: 500; margin-right: 15px;">👋 Chào Admin,</span>
+            <span style="font-weight: 500; margin-right: 15px;">👋 Chào </span>
             <img src="/image/Flan.png" style="width: 40px; height: 40px; border-radius: 50%; vertical-align: middle;" alt="Admin Avatar">
         </div>
     </header>
@@ -59,7 +60,10 @@
 
             <div class="chart-wrapper">
                 <h3 style="margin-bottom: 20px; color: var(--text-dark);">Biểu đồ Doanh thu 7 ngày qua</h3>
-                <canvas id="revenueChart" height="80"></canvas>
+                <div class="chart-wrapper" style="position: relative; height: 350px; max-height: 350px; width: 100%; overflow: hidden; padding-bottom: 20px;">
+                    <h3 style="margin-bottom: 20px; color: var(--text-dark);">Biểu đồ Doanh thu 7 ngày qua</h3>
+                    <canvas id="revenueChart" style="max-height: 280px; width: 100%;"></canvas>
+                </div>
             </div>
         </section>
 
@@ -105,26 +109,36 @@
                             <th>Họ và Tên</th>
                             <th>Tài khoản</th>
                             <th>Vai trò</th>
-                            <th>Ngày tạo</th>
                             <th>Trạng thái</th>
                             <th style="min-width: 130px;">Hành động</th>
                         </tr>
                         </thead>
                         <tbody>
-                        <tr>
-                            <td style="font-weight: bold; color: #888;">#U001</td>
-                            <td style="font-weight: 600;">Nguyễn Ngọc Hoàng Nam</td>
-                            <td>admin123</td>
-                            <td><span style="background: #34495e; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem;">Admin</span></td>
-                            <td>10/10/2025</td>
-                            <td><span class="status-badge status-active">Hoạt động</span></td>
-                            <td>
-                                <button class="action-btn" style="background: #f39c12;" title="Khóa tài khoản" onclick="mockToggleStaffStatus(1, true)"><i class="fa-solid fa-lock"></i></button>
-                                <button class="action-btn btn-edit" title="Sửa" onclick="openStaffModal('edit', 1)"><i class="fa-solid fa-pen-to-square"></i></button>
-                                <button class="action-btn btn-delete" title="Xóa" onclick="mockDeleteStaff(1)"><i class="fa-solid fa-trash"></i></button>
-                            </td>
-                        </tr>
+
                         </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-table" style="display: none;">
+            <div class="table-container">
+                <div class="table-header-flex">
+                    <h3>Danh sách Bàn ăn</h3>
+                    <button class="btn btn-primary" onclick="openTableModal('add')">+ Thêm bàn mới</button>
+                </div>
+
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                        <tr>
+                            <th>Mã Bàn</th>
+                            <th>Tên Bàn</th>
+                            <th>Trạng thái (Khách)</th>
+                            <th style="min-width: 130px;">Hành động</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
@@ -193,7 +207,7 @@
     <div class="modal-content-box">
         <div class="modal-header-sticky">
             <h2 id="staff-modal-title">Thêm Nhân Viên Mới</h2>
-            <button onclick="closeStaffModal()">&times;</button>
+            <button type="button" onclick="closeStaffModal()">&times;</button>
         </div>
 
         <form id="staff-form" onsubmit="mockSaveStaff(event)">
@@ -219,8 +233,8 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">Mật khẩu (Password) <span class="required">*</span></label>
-                <input type="password" id="staff-password" class="form-control" required placeholder="Nhập mật khẩu...">
+                <label class="form-label">Mật khẩu (Password)</label>
+                <input type="password" id="staff-password" class="form-control" placeholder="Nhập mật khẩu...">
                 <small class="form-help-text">*Mật khẩu sẽ được mã hóa Bcrypt trước khi lưu vào Database.</small>
             </div>
 
@@ -234,6 +248,37 @@
 
             <div class="form-actions">
                 <button type="button" class="btn-cancel" onclick="closeStaffModal()">Hủy bỏ</button>
+                <button type="submit" class="btn-save">Lưu Dữ Liệu</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="table-modal" class="modal-overlay">
+    <div class="modal-content-box" style="max-width: 400px;">
+        <div class="modal-header-sticky">
+            <h2 id="table-modal-title">Thêm Bàn Mới</h2>
+            <button type="button" onclick="closeTableModal()">&times;</button>
+        </div>
+
+        <form id="table-form" onsubmit="mockSaveTable(event)">
+            <input type="hidden" id="table-id">
+
+            <div class="form-group">
+                <label class="form-label">Tên bàn <span class="required">*</span></label>
+                <input type="text" id="table-name" class="form-control" required placeholder="VD: Bàn 01">
+            </div>
+
+            <div class="form-group" id="group-table-status" style="display: none;">
+                <label class="form-label">Trạng thái (Khách)</label>
+                <select id="table-status" class="form-control">
+                    <option value="Empty">Đang Trống</option>
+                    <option value="Occupied">Đang Phục vụ</option>
+                </select>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" onclick="closeTableModal()">Hủy bỏ</button>
                 <button type="submit" class="btn-save">Lưu Dữ Liệu</button>
             </div>
         </form>

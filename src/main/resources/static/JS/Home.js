@@ -1,57 +1,74 @@
 // Bọc TẤT CẢ code bên trong sự kiện này để đảm bảo trang web đã tải xong HTML
 document.addEventListener('DOMContentLoaded', function() {
 
-    /* ==============================================================
-       KHO DỮ LIỆU CHUNG (CHUẨN DATABASE SCHEMA)
-       ============================================================== */
-    // 1. ĐỔI TÊN MẢNG CỨNG THÀNH "initialFoodDatabase"
-    const initialFoodDatabase = [
-        { FoodID: 1, Name: "Chè", CurrentPrice: 25000, ImageURL: "/image/Che.png", Description: "Chè ngọt thanh mát", CategoryID: "trang-mieng", IsAvailable: true, rating: 3 },
-        { FoodID: 2, Name: "Flan Vani", CurrentPrice: 35000, ImageURL: "/image/Flan.png", Description: "Flan mềm mịn vị Vani", CategoryID: "trang-mieng", IsAvailable: true, rating: 5 },
-        { FoodID: 3, Name: "Flan Cherry", CurrentPrice: 45000, ImageURL: "/image/Flan2.png", Description: "Flan kết hợp mứt Cherry", CategoryID: "trang-mieng", IsAvailable: true, rating: 4 },
-        { FoodID: 4, Name: "Flan Xoài", CurrentPrice: 45000, ImageURL: "/image/Flan3.png", Description: "Flan xoài tươi mát", CategoryID: "trang-mieng", IsAvailable: true, rating: 5 },
-        { FoodID: 5, Name: "Bánh Kem", CurrentPrice: 45000, ImageURL: "/image/BanhKem.png", Description: "Bánh kem mini ngọt ngào", CategoryID: "trang-mieng", IsAvailable: true, rating: 4 },
-        { FoodID: 6, Name: "Bánh Cuốn", CurrentPrice: 35000, ImageURL: "/image/BanhCuon.png", Description: "Bánh cuốn thịt mộc nhĩ", CategoryID: "mon-chinh", IsAvailable: true, rating: 4 },
-        { FoodID: 7, Name: "Bánh Mỳ Pate", CurrentPrice: 20000, ImageURL: "/image/BanhMy.png", Description: "Bánh mỳ giòn rụm", CategoryID: "mon-chinh", IsAvailable: true, rating: 4 },
-        { FoodID: 8, Name: "Bánh Mỳ Sốt Vàng", CurrentPrice: 45000, ImageURL: "/image/BanhMySotVang.png", Description: "Bò sốt vang đậm vị", CategoryID: "mon-chinh", IsAvailable: true, rating: 5 },
-        { FoodID: 9, Name: "Bánh Xèo", CurrentPrice: 25000, ImageURL: "/image/BanhXeo.png", Description: "Bánh xèo miền Tây", CategoryID: "mon-chinh", IsAvailable: true, rating: 4 },
-        { FoodID: 10, Name: "Bún Bò Huế", CurrentPrice: 40000, ImageURL: "/image/BunBoHue.png", Description: "Chuẩn vị Huế xưa", CategoryID: "mon-chinh", IsAvailable: true, rating: 5 },
-        { FoodID: 11, Name: "Bún Chả", CurrentPrice: 35000, ImageURL: "/image/BunCha.png", Description: "Bún chả Hà Nội", CategoryID: "mon-chinh", IsAvailable: true, rating: 5 },
-        { FoodID: 12, Name: "Bún Đậu", CurrentPrice: 35000, ImageURL: "/image/BunDau.png", Description: "Bún đậu mắm tôm", CategoryID: "mon-chinh", IsAvailable: false, rating: 4 },
-        { FoodID: 13, Name: "Cơm Tấm", CurrentPrice: 45000, ImageURL: "/image/ComTam.png", Description: "Cơm tấm sườn nướng", CategoryID: "mon-chinh", IsAvailable: true, rating: 4 },
-        { FoodID: 14, Name: "Gỏi Cuốn", CurrentPrice: 45000, ImageURL: "/image/GoiCuon.png", Description: "Gỏi cuốn tôm thịt", CategoryID: "mon-chinh", IsAvailable: true, rating: 4 },
-        { FoodID: 15, Name: "Nem Nướng", CurrentPrice: 50000, ImageURL: "/image/NemNuong.png", Description: "Nem nướng lụi", CategoryID: "mon-chinh", IsAvailable: true, rating: 4 },
-        { FoodID: 16, Name: "Phở Bò", CurrentPrice: 45000, ImageURL: "/image/PhoBo.png", Description: "Phở bò truyền thống", CategoryID: "mon-chinh", IsAvailable: true, rating: 5 },
-        { FoodID: 17, Name: "Xôi Cốm", CurrentPrice: 25000, ImageURL: "/image/XoiCom.png", Description: "Xôi cốm dừa", CategoryID: "mon-chinh", IsAvailable: true, rating: 5 },
-        { FoodID: 18, Name: "Bò Húc", CurrentPrice: 15000, ImageURL: "/image/BoHuc.png", Description: "Nước tăng lực", CategoryID: "do-uong", IsAvailable: true, rating: 3 },
-        { FoodID: 19, Name: "Bạc Xỉu", CurrentPrice: 25000, ImageURL: "/image/BacXiu.png", Description: "Bạc xỉu đá", CategoryID: "do-uong", IsAvailable: true, rating: 3 },
-        { FoodID: 20, Name: "Cà Phê", CurrentPrice: 25000, ImageURL: "/image/CaPhe.png", Description: "Cà phê đen đá", CategoryID: "do-uong", IsAvailable: true, rating: 4 },
-        { FoodID: 21, Name: "Coca", CurrentPrice: 12000, ImageURL: "/image/Coca.png", Description: "Nước ngọt có gas", CategoryID: "do-uong", IsAvailable: true, rating: 3 },
-        { FoodID: 22, Name: "Nước Ép Cam", CurrentPrice: 30000, ImageURL: "/image/NuocCam.png", Description: "Cam vắt nguyên chất", CategoryID: "do-uong", IsAvailable: true, rating: 5 },
-        { FoodID: 23, Name: "Nước Ép Dâu", CurrentPrice: 30000, ImageURL: "/image/NuocDau.png", Description: "Dâu tây tươi mát", CategoryID: "do-uong", IsAvailable: true, rating: 4 },
-        { FoodID: 24, Name: "Nước Lọc", CurrentPrice: 5000, ImageURL: "/image/NuocLoc.png", Description: "Nước tinh khiết", CategoryID: "do-uong", IsAvailable: true, rating: 4 },
-        { FoodID: 25, Name: "Pepsi", CurrentPrice: 12000, ImageURL: "/image/Pepsi.png", Description: "Nước ngọt giải khát", CategoryID: "do-uong", IsAvailable: true, rating: 3 }
-    ];
+    // ==========================================
+    // 1. CẤU HÌNH API VÀ KHAI BÁO BIẾN DỮ LIỆU
+    // ==========================================
+    const API_FOOD_URL = "http://localhost:8080/api/foods";
+    const API_USER_LOGIN_URL = "http://localhost:8080/api/users/login";
+    const API_TABLE_URL = "http://localhost:8080/api/tables"; // Thêm API Bàn
+    const API_ORDER_URL = "http://localhost:8080/api/orders"; //
+    let foodDatabase = [];
+    let restaurantTables = []; // Khởi tạo mảng rỗng, dữ liệu sẽ lấy từ MySQL
 
-    // 2. NẠP DỮ LIỆU VÀO LOCALSTORAGE NẾU CHƯA CÓ
-    if (!localStorage.getItem('restaurantMenu')) {
-        localStorage.setItem('restaurantMenu', JSON.stringify(initialFoodDatabase));
+    // ==========================================
+    // 2. GỌI API LẤY DỮ LIỆU TỪ BACKEND
+    // ==========================================
+
+    // 2.1 Lấy Thực Đơn
+    function loadMenuFromDatabase() {
+        fetch(API_FOOD_URL)
+            .then(response => {
+                if (!response.ok) throw new Error("Lỗi kết nối Backend");
+                return response.json();
+            })
+            .then(data => {
+                foodDatabase = data.map(item => {
+                    let catSlug = "mon-chinh";
+                    if (item.category) {
+                        if (item.category.id === 2) catSlug = "do-uong";
+                        if (item.category.id === 3) catSlug = "trang-mieng";
+                    }
+                    let safeImageUrl = item.imageURL ? (item.imageURL.startsWith('/') ? item.imageURL : '/' + item.imageURL) : '/image/Flan.png';
+                    return {
+                        FoodID: item.id,
+                        Name: item.name,
+                        CurrentPrice: item.currentPrice,
+                        ImageURL: safeImageUrl,
+                        Description: item.description,
+                        CategoryID: catSlug,
+                        IsAvailable: item.isAvailable,
+                        rating: Math.floor(item.rating || 5)
+                    };
+                });
+
+                renderSlider();
+                if (typeof window.applyFilters === 'function') window.applyFilters();
+            })
+            .catch(error => console.error("Lỗi lấy thực đơn:", error));
     }
 
-    // 3. KHAI BÁO BIẾN `foodDatabase` DÙNG TỪ KHÓA `let` ĐỂ LẤY TỪ BỘ NHỚ RA (Quan trọng!)
-    let foodDatabase = JSON.parse(localStorage.getItem('restaurantMenu')) || initialFoodDatabase;
+    // 2.2 Lấy Danh sách Bàn ăn
+    function loadTablesFromDatabase() {
+        fetch(API_TABLE_URL)
+            .then(res => res.json())
+            .then(data => {
+                // Ánh xạ dữ liệu DB sang chuẩn Frontend
+                restaurantTables = data.map(t => ({
+                    id: t.id,
+                    name: t.tableNumber,
+                    status: t.status // "Empty" hoặc "Occupied"
+                }));
+                updateCartUI(true); // Cập nhật lại thanh chọn bàn
+            })
+            .catch(err => console.error("Lỗi tải danh sách bàn:", err));
+    }
 
-    // --- KHỞI TẠO DỮ LIỆU BÀN (Mô phỏng Database Bàn) ---
-    const initialTables = [
-        { id: 1, name: "Bàn 01", status: "empty" }, { id: 2, name: "Bàn 02", status: "empty" },
-        { id: 3, name: "Bàn 03", status: "empty" }, { id: 4, name: "Bàn 04", status: "empty" },
-        { id: 5, name: "Bàn 05", status: "empty" }, { id: 6, name: "Bàn 06", status: "empty" }
-    ];
-
-    // Hàm tiện ích: Format tiền kiểu Việt Nam (vd: 25000 -> "25.000đ")
+    // ==========================================
+    // 3. CÁC HÀM TIỆN ÍCH & VẼ GIAO DIỆN MÓN ĂN
+    // ==========================================
     function formatMoney(amount) { return amount.toLocaleString('vi-VN') + 'đ'; }
 
-    // Hàm tiện ích: Sinh ra HTML của 1 món ăn
     function generateFoodCard(food) {
         const stars = '⭐'.repeat(food.rating);
         let actionButtons = `
@@ -68,7 +85,9 @@ document.addEventListener('DOMContentLoaded', function() {
         return `
             <div class="product-card" data-category="${food.CategoryID}" style="position:relative; opacity: ${food.IsAvailable ? '1' : '0.6'};">
                 ${stockOverlay}
-                <div class="product-img-wrapper"><img src="${food.ImageURL}" alt="${food.Name}"></div>
+                <div class="product-img-wrapper">
+                    <img src="${food.ImageURL}" alt="${food.Name}" onerror="this.src='/image/Flan.png'">
+                </div>
                 <div class="product-info">
                     <div class="product-header">
                         <h3 title="${food.Description}">${food.Name}</h3>
@@ -83,29 +102,23 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
 
-    /* ==============================================================
-       1. XỬ LÝ TRANG CHỦ: HIỂN THỊ MÓN NỔI BẬT & SLIDER
-       ============================================================== */
+    // ==============================================================
+    // 4. XỬ LÝ TRANG CHỦ: HIỂN THỊ MÓN NỔI BẬT & SLIDER
+    // ==============================================================
     const sliderTrack = document.getElementById('popular-slider-track');
 
-    // Chuyển việc vẽ Slider thành 1 hàm để tái sử dụng khi update Real-time
     function renderSlider() {
         if (sliderTrack) {
-            // Lấy lại dữ liệu mới nhất
-            const currentFoods = JSON.parse(localStorage.getItem('restaurantMenu')) || foodDatabase;
-            const popularFoods = currentFoods.filter(food => food.rating === 5 && food.IsAvailable);
+            const popularFoods = foodDatabase.filter(food => food.rating === 5 && food.IsAvailable);
             sliderTrack.innerHTML = '';
             popularFoods.forEach(food => { sliderTrack.innerHTML += generateFoodCard(food); });
             initSlider();
         }
     }
 
-    renderSlider(); // Chạy lần đầu
-
     function initSlider() {
         const track = document.getElementById('popular-slider-track');
-        if(!track) return; // Bảo vệ nếu đang ở trang Menu
-
+        if(!track) return;
         const cards = track.querySelectorAll('.product-card');
         if(cards.length === 0) return;
 
@@ -114,7 +127,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         let currentIndex = 0;
         const cardWidth = 280; const gap = 30; const itemWidth = cardWidth + gap;
-
         const sliderContainer = document.querySelector('.slider-container');
         const itemsPerView = Math.floor(sliderContainer.offsetWidth / itemWidth);
         const maxIndex = cards.length - itemsPerView > 0 ? cards.length - itemsPerView : 0;
@@ -139,9 +151,9 @@ document.addEventListener('DOMContentLoaded', function() {
         track.addEventListener('mouseleave', startAutoPlay);
     }
 
-    /* ==============================================================
-       2. XỬ LÝ TRANG MENU: RENDER MÓN ĂN VÀ BỘ LỌC
-       ============================================================== */
+    // ==============================================================
+    // 5. XỬ LÝ TRANG MENU: RENDER MÓN ĂN VÀ BỘ LỌC
+    // ==============================================================
     const menuContainer = document.getElementById('menu-container');
     const filterBtns = document.querySelectorAll('.filter-btn');
     const searchBtn = document.querySelector('.search-btn');
@@ -160,18 +172,12 @@ document.addEventListener('DOMContentLoaded', function() {
         itemsToRender.forEach(food => { menuContainer.innerHTML += generateFoodCard(food); });
     }
 
-    // Đưa applyFilters ra global scope (gắn vào window) để có thể gọi ở cuối file
     window.applyFilters = function() {
-        // Cập nhật lại kho dữ liệu mới nhất
-        foodDatabase = JSON.parse(localStorage.getItem('restaurantMenu')) || initialFoodDatabase;
         let filteredData = foodDatabase;
-
         if (currentCategory !== 'all') filteredData = filteredData.filter(food => food.CategoryID === currentCategory);
         if (currentSearchWord !== '') filteredData = filteredData.filter(food => food.Name.toLowerCase().includes(currentSearchWord));
         renderMenu(filteredData);
     }
-
-    if(menuContainer) window.applyFilters(); // Chạy lần đầu
 
     if (filterBtns.length > 0) {
         filterBtns.forEach(btn => {
@@ -196,9 +202,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    /* ==============================================================
-       3. CÁC XỬ LÝ KHÁC (POPUP ĐĂNG NHẬP, ẨN HIỆN MẬT KHẨU)
-       ============================================================== */
+    // ==============================================================
+    // 6. XỬ LÝ ĐĂNG NHẬP (GỌI API) VÀ POPUP MODAL
+    // ==============================================================
     const modal = document.getElementById("login-modal");
     const loginBtn = document.getElementById("login-btn");
     const closeBtn = document.querySelector(".close-modal");
@@ -222,10 +228,47 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    /* ==============================================================
-       6 & 7. XỬ LÝ GIỎ HÀNG VÀ TRẠNG THÁI ĐƠN HÀNG TẠI BÀN
-       ============================================================== */
+    const loginForm = document.getElementById('login-form');
 
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const usernameInput = document.getElementById('username-input');
+            const passwordInput = document.getElementById('pwd-input');
+
+            if (!usernameInput || !passwordInput) {
+                alert("Lỗi Giao diện: Không tìm thấy ô nhập liệu!"); return;
+            }
+
+            const payload = {
+                username: usernameInput.value.trim(),
+                password: passwordInput.value.trim()
+            };
+
+            const submitBtn = loginForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerText;
+            submitBtn.innerText = "Đang xác thực..."; submitBtn.disabled = true;
+
+            fetch(API_USER_LOGIN_URL, {
+                method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
+            })
+                .then(async response => {
+                    submitBtn.innerText = originalText; submitBtn.disabled = false;
+                    if (response.ok) return response.json();
+                    else { const errorMessage = await response.text(); throw new Error(errorMessage); }
+                })
+                .then(user => {
+                    localStorage.setItem('loggedInUser', JSON.stringify(user));
+                    if (user.role === 'Admin') window.location.href = "Admin.html";
+                    else if (user.role === 'Staff') window.location.href = "Staff.html";
+                })
+                .catch(error => alert("❌ Đăng nhập thất bại: " + error.message));
+        });
+    }
+
+    // ==============================================================
+    // 7. XỬ LÝ GIỎ HÀNG VÀ TRẠNG THÁI ĐƠN HÀNG TẠI BÀN
+    // ==============================================================
     let cart = JSON.parse(localStorage.getItem('healthyFoodCart_v3')) || [];
     let orderStatus = localStorage.getItem('tableStatus_v3') || 'ordering';
 
@@ -237,17 +280,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const cartItemsContainer = document.getElementById('cart-items-container');
     const cartTotalPrice = document.getElementById('cart-total-price');
     const cartBadge = document.getElementById('cart-badge');
-
     const orderBtn = document.getElementById('order-btn');
     const orderStatusBtn = document.getElementById('order-status-btn');
     const noteContainer = document.getElementById('note-container');
     const orderNotes = document.getElementById('order-notes');
 
     function toggleCart() {
-        if(cartSidebar && cartOverlay) {
-            cartSidebar.classList.toggle('active');
-            cartOverlay.classList.toggle('active');
-        }
+        if(cartSidebar && cartOverlay) { cartSidebar.classList.toggle('active'); cartOverlay.classList.toggle('active'); }
     }
 
     if(headerCartBtn) headerCartBtn.addEventListener('click', toggleCart);
@@ -255,11 +294,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if(cartOverlay) cartOverlay.addEventListener('click', toggleCart);
 
     window.handleAddToCart = function(foodId, openCartSidebar) {
-        if (orderStatus !== 'ordering') {
-            alert('Bạn đã gọi món rồi! Vui lòng thanh toán đơn hiện tại trước khi gọi thêm món mới.');
-            return;
-        }
-
+        if (orderStatus !== 'ordering') { alert('Bạn đã gọi món rồi! Vui lòng thanh toán đơn hiện tại trước khi gọi thêm món mới.'); return; }
         const food = foodDatabase.find(f => f.FoodID === foodId);
         if (!food || !food.IsAvailable) return;
 
@@ -282,19 +317,18 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     function updateCartUI(isFromSync = false) {
-        let freshTables = JSON.parse(localStorage.getItem('restaurantTables')) || initialTables;
         let myTableId = localStorage.getItem('myTableId') || "";
 
         if (tableSelector) {
             tableSelector.innerHTML = '<option value="">-- Chọn bàn của bạn --</option>';
-            freshTables.forEach(t => {
-                if (t.status === 'empty' || t.id == myTableId) {
+            // CHÚ Ý: Dùng mảng restaurantTables lấy từ DB, lọc bàn 'Empty'
+            restaurantTables.forEach(t => {
+                if (t.status === 'Empty' || t.id == myTableId) {
                     const isSelected = (t.id == myTableId) ? 'selected' : '';
                     tableSelector.innerHTML += `<option value="${t.id}" ${isSelected}>${t.name}</option>`;
                 }
             });
-            if (orderStatus !== 'ordering') tableSelector.disabled = true;
-            else tableSelector.disabled = false;
+            tableSelector.disabled = (orderStatus !== 'ordering');
         }
 
         if (!isFromSync) {
@@ -365,12 +399,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 else if (orderStatus === 'cancelled') {
                     const reason = localStorage.getItem('tableNote_v3') || 'Không rõ';
                     alert(`❌ Đơn hàng của bạn đã bị hủy bởi nhân viên.\nLý do: ${reason}\n\nVui lòng chọn lại món!`);
-
-                    cart = [];
-                    orderStatus = 'ordering';
-                    localStorage.removeItem('tableNote_v3');
-                    updateCartUI();
-                    return;
+                    cart = []; orderStatus = 'ordering'; localStorage.removeItem('tableNote_v3');
+                    updateCartUI(); return;
                 }
             }
         }
@@ -422,52 +452,122 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 let selectedTableId = tableSelector.value;
-                localStorage.setItem('myTableId', selectedTableId);
+                let note = orderNotes ? orderNotes.value.trim() : '';
 
-                let freshTables = JSON.parse(localStorage.getItem('restaurantTables')) || initialTables;
-                const tableIndex = freshTables.findIndex(t => t.id == selectedTableId);
-                if(tableIndex !== -1) {
-                    freshTables[tableIndex].status = 'occupied';
-                    localStorage.setItem('restaurantTables', JSON.stringify(freshTables));
+                // Đổi nút thành trạng thái đang xử lý
+                const originalText = orderBtn.innerText;
+                orderBtn.innerText = "Đang gửi đơn...";
+                orderBtn.disabled = true;
+
+                // 1. ĐÓNG GÓI DỮ LIỆU CHUẨN DTO ĐỂ GỬI LÊN SERVER
+                const orderPayload = {
+                    tableId: parseInt(selectedTableId),
+                    note: note,
+                    items: cart.map(item => ({
+                        foodId: item.FoodID,
+                        quantity: item.quantity,
+                        note: ""
+                    }))
+                };
+
+                // Kiểm tra xem có nhân viên đang đứng order giúp khách không
+                const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+                if (loggedInUser && loggedInUser.id) {
+                    orderPayload.userId = loggedInUser.id;
                 }
 
-                let note = orderNotes ? orderNotes.value.trim() : '';
-                localStorage.setItem('tableNote_v3', note);
-                orderStatus = 'pending';
-                updateCartUI();
-                alert(`🔔 Đã gửi hóa đơn đến nhà bếp!`);
+                // 2. BẮN API LÊN SPRING BOOT
+                fetch(API_ORDER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderPayload)
+                })
+                    .then(async response => {
+                        orderBtn.innerText = originalText;
+                        orderBtn.disabled = false;
+
+                        if (response.ok) {
+                            return response.json(); // Trả về dữ liệu JSON để .then() bên dưới dùng
+                        } else {
+                            const err = await response.text();
+                            throw new Error(err);
+                        }
+                    })
+                    .then(savedOrder => {
+                        // 3. THÀNH CÔNG -> CẬP NHẬT LẠI TRẠNG THÁI GIAO DIỆN
+                        alert(`🔔 Đã gửi hóa đơn #${savedOrder.id} đến nhà bếp thành công!`);
+
+                        localStorage.setItem('myTableId', selectedTableId);
+                        localStorage.setItem('tableNote_v3', note);
+                        localStorage.setItem('myOrderId', savedOrder.id); // LƯU ID VÀO ĐÂY LÀ ĐÚNG
+
+                        orderStatus = 'pending';
+
+                        // Cập nhật lại status của bàn trong mảng tạm để hiển thị "Đang phục vụ"
+                        const tableIndex = restaurantTables.findIndex(t => t.id == selectedTableId);
+                        if(tableIndex !== -1) {
+                            restaurantTables[tableIndex].status = 'Occupied';
+                        }
+
+                        updateCartUI();
+                    })
+                    .catch(error => {
+                        alert("❌ Lỗi gửi đơn hàng: " + error.message);
+                        orderBtn.innerText = originalText;
+                        orderBtn.disabled = false;
+                    });
+
             }
             else if (orderStatus === 'served') {
-                alert('💳 Đã gửi thông báo tính tiền đến thu ngân. Nhân viên sẽ tới bàn ngay!');
-                orderStatus = 'payment_requested';
-                updateCartUI();
+                // Lấy ID đơn hàng đã lưu ở bước trên
+                const myOrderId = localStorage.getItem('myOrderId');
+                if (!myOrderId) {
+                    alert("Không tìm thấy mã đơn hàng. Vui lòng vẫy tay gọi nhân viên!");
+                    return;
+                }
+
+                // Vô hiệu hóa nút tạm thời tránh khách bấm nhiều lần
+                const originalText = orderBtn.innerText;
+                orderBtn.innerText = "Đang báo thu ngân...";
+                orderBtn.disabled = true;
+
+                // GỌI API CẬP NHẬT TRẠNG THÁI LÊN DATABASE
+                fetch(`${API_ORDER_URL}/${myOrderId}/status?status=payment_requested`, { method: 'PUT' })
+                    .then(res => {
+                        orderBtn.innerText = originalText;
+                        orderBtn.disabled = false;
+
+                        if (res.ok) {
+                            alert('💳 Đã báo tính tiền! Thu ngân đang kiểm tra hóa đơn và sẽ ra bàn ngay.');
+                            orderStatus = 'payment_requested';
+                            updateCartUI();
+                        } else {
+                            alert('❌ Lỗi khi gọi thanh toán. Hãy thử lại!');
+                        }
+                    })
+                    .catch(err => {
+                        alert("Lỗi mạng: " + err);
+                        orderBtn.innerText = originalText;
+                        orderBtn.disabled = false;
+                    });
             }
         });
     }
 
     updateCartUI();
 
-    // ====================================================================
-    // 🌟 MA THUẬT REAL-TIME TRÊN FRONTEND (BỔ SUNG THÊM LẮNG NGHE ADMIN)
-    // ====================================================================
-    window.addEventListener('storage', function(event) {
+    // ==========================================
+    // 8. KHỞI CHẠY LẤY DỮ LIỆU TỪ SERVER
+    // ==========================================
+    loadMenuFromDatabase();
+    loadTablesFromDatabase(); // Kéo danh sách Bàn ăn thật từ MySQL
 
-        // 1. Lắng nghe Nhân viên thay đổi trạng thái đơn hàng hoặc bàn
-        if (event.key === 'tableStatus_v3' || event.key === 'healthyFoodCart_v3' || event.key === 'restaurantTables') {
+    // Lắng nghe sự thay đổi nếu mở nhiều tab (Tạm thời)
+    window.addEventListener('storage', function(event) {
+        if (event.key === 'tableStatus_v3' || event.key === 'healthyFoodCart_v3') {
             orderStatus = localStorage.getItem('tableStatus_v3') || 'ordering';
             cart = JSON.parse(localStorage.getItem('healthyFoodCart_v3')) || [];
             updateCartUI(true);
-        }
-
-        // 2. Lắng nghe Admin thay đổi thực đơn
-        if (event.key === 'restaurantMenu') {
-            // Cập nhật lại lưới Menu ngay lập tức (nếu đang ở trang Menu)
-            if (typeof window.applyFilters === 'function') {
-                window.applyFilters();
-            }
-
-            // Cập nhật lại thanh Slider (nếu đang ở trang Home)
-            renderSlider();
         }
     });
 });
