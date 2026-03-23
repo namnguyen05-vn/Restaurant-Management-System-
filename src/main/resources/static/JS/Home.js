@@ -570,4 +570,59 @@ document.addEventListener('DOMContentLoaded', function() {
             updateCartUI(true);
         }
     });
+    function autoSyncOrderStatus() {
+        // Chỉ tự động kiểm tra khi Khách đã gửi đơn đi (Khác trạng thái ordering)
+        // và đơn chưa bị Hủy hoặc chưa Thanh toán xong.
+        if (orderStatus === 'ordering' || orderStatus === 'payment_requested' || orderStatus === 'cancelled') {
+            return;
+        }
+
+        const myOrderId = localStorage.getItem('myOrderId');
+        if (!myOrderId) return; // Nếu chưa có ID đơn hàng thì không làm gì cả
+
+        // Gọi API lên Server để lấy lại thông tin mới nhất của chính Đơn hàng này
+        fetch(`${API_ORDER_URL}`) // Gọi lấy danh sách (Hoặc nếu bạn có API /api/orders/{id} thì dùng càng tốt)
+            .then(response => response.json())
+            .then(data => {
+                // Tìm đúng đơn hàng của mình trong danh sách trả về
+                const myCurrentOrder = data.find(order => order.id == myOrderId);
+
+                if (myCurrentOrder) {
+                    const statusFromServer = myCurrentOrder.status.toLowerCase();
+
+                    // Nếu trạng thái trên Server KHÁC với trạng thái đang hiển thị trên web
+                    if (statusFromServer !== orderStatus && statusFromServer !== 'pending') {
+                        console.log("Trạng thái đơn hàng thay đổi:", statusFromServer);
+
+                        // Cập nhật lại biến trạng thái và lưu vào bộ nhớ
+                        orderStatus = statusFromServer;
+                        localStorage.setItem('tableStatus_v3', orderStatus);
+
+                        // Cập nhật lại giao diện người dùng
+                        updateCartUI(true);
+
+                        // Bật thông báo Popup cho Khách hàng biết
+                        if (statusFromServer === 'cooking') {
+                            alert('👨‍🍳 Bếp đã xác nhận đơn. Món ăn của bạn đang được chế biến!');
+                        } else if (statusFromServer === 'served') {
+                            alert('🔔 Tinh tinh! Món ăn đã được phục vụ lên bàn. Chúc bạn ngon miệng!');
+                        } else if (statusFromServer === 'paid') {
+                            alert('✅ Đơn hàng đã được thanh toán thành công! Cảm ơn quý khách.');
+                            // Reset lại giỏ hàng và màn hình sau khi thanh toán
+                            cart = [];
+                            orderStatus = 'ordering';
+                            localStorage.removeItem('healthyFoodCart_v3');
+                            localStorage.removeItem('tableStatus_v3');
+                            localStorage.removeItem('myOrderId');
+                            localStorage.removeItem('myTableId');
+                            updateCartUI();
+                        }
+                    }
+                }
+            })
+            .catch(error => console.error("Lỗi đồng bộ trạng thái đơn:", error));
+    }
+
+    // Bật bộ đếm thời gian: Cứ 5000 mili-giây (5 giây) thì chạy hàm kiểm tra 1 lần
+    setInterval(autoSyncOrderStatus, 5000);
 });
