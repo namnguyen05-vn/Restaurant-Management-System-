@@ -23,7 +23,7 @@ html {
 }
 
 body {
-    font-family: 'Poppins', sans-serif;
+    font-family: Arial, sans-serif;
     color: var(--text-dark);
     line-height: 1.6;
     background-color: var(--white);
@@ -1107,8 +1107,14 @@ input[type="password"]::-ms-clear {
     align-items: center;
     gap: 20px;
     border-bottom: 4px solid var(--primary-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
-
+.stat-card:hover{
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    background: rgba(248, 252, 251, 0.59);
+}
 .stat-icon {
     width: 60px; height: 60px;
     border-radius: 50%;

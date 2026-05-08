@@ -6,6 +6,12 @@ import org.example.restaurantmanager.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/invoices")
@@ -16,6 +22,25 @@ public class InvoiceController {
     @Autowired private OrderRepository orderRepository;
     @Autowired private RestaurantTableRepository tableRepository;
     @Autowired private UserRepository userRepository;
+
+    @GetMapping
+    public ResponseEntity<Page<Invoice>> getAllInvoices(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(required = false) String keyword) {
+
+        // Thêm Sort để hóa đơn mới nhất luôn nằm trên cùng
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        Page<Invoice> invoicePage;
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            // Giả sử dùng tìm kiếm theo tên nhân viên qua bảng liên kết
+            invoicePage = invoiceRepository.findByStaff_FullNameContainingIgnoreCase(keyword.trim(), pageable);
+        } else {
+            invoicePage = invoiceRepository.findAll(pageable);
+        }
+        return ResponseEntity.ok(invoicePage);
+    }
 
     @PostMapping
     public ResponseEntity<?> createInvoice(@RequestBody InvoiceRequestDTO request) {

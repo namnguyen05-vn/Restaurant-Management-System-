@@ -5,42 +5,52 @@ document.addEventListener('DOMContentLoaded', function() {
     // 1. CẤU HÌNH API VÀ KHAI BÁO BIẾN DỮ LIỆU
     // ==========================================
     const API_FOOD_URL = "http://localhost:8080/api/foods";
+    const API_FOOD_SEARCH_URL = "http://localhost:8080/api/foods/search"; // API Tìm kiếm mới thêm
     const API_USER_LOGIN_URL = "http://localhost:8080/api/users/login";
-    const API_TABLE_URL = "http://localhost:8080/api/tables"; // Thêm API Bàn
-    const API_ORDER_URL = "http://localhost:8080/api/orders"; //
+    const API_TABLE_URL = "http://localhost:8080/api/tables";
+    const API_ORDER_URL = "http://localhost:8080/api/orders";
+
     let foodDatabase = [];
-    let restaurantTables = []; // Khởi tạo mảng rỗng, dữ liệu sẽ lấy từ MySQL
+    let restaurantTables = [];
+
+    // Hàm tiện ích: Chuẩn hóa dữ liệu từ Backend gửi về để khớp với Frontend
+    function formatFoodData(item) {
+        let catSlug = "mon-chinh";
+        if (item.category) {
+            if (item.category.id === 2) catSlug = "do-uong";
+            if (item.category.id === 3) catSlug = "trang-mieng";
+        }
+        let safeImageUrl = item.imageURL ? (item.imageURL.startsWith('/') ? item.imageURL : '/' + item.imageURL) : '/image/Flan.png';
+        return {
+            FoodID: item.id,
+            Name: item.name,
+            CurrentPrice: item.currentPrice,
+            ImageURL: safeImageUrl,
+            Description: item.description,
+            CategoryID: catSlug,
+            IsAvailable: item.isAvailable,
+            rating: Math.floor(item.rating || 5)
+        };
+    }
 
     // ==========================================
     // 2. GỌI API LẤY DỮ LIỆU TỪ BACKEND
     // ==========================================
 
-    // 2.1 Lấy Thực Đơn
+    // 2.1 Lấy Thực Đơn (Chạy 1 lần khi load trang)
     function loadMenuFromDatabase() {
-        fetch(API_FOOD_URL)
+        // THAY ĐỔI 1: Yêu cầu Backend trả 1000 món ăn trên 1 trang để khách tha hồ chọn
+        fetch(`${API_FOOD_URL}?size=1000`)
             .then(response => {
                 if (!response.ok) throw new Error("Lỗi kết nối Backend");
                 return response.json();
             })
             .then(data => {
-                foodDatabase = data.map(item => {
-                    let catSlug = "mon-chinh";
-                    if (item.category) {
-                        if (item.category.id === 2) catSlug = "do-uong";
-                        if (item.category.id === 3) catSlug = "trang-mieng";
-                    }
-                    let safeImageUrl = item.imageURL ? (item.imageURL.startsWith('/') ? item.imageURL : '/' + item.imageURL) : '/image/Flan.png';
-                    return {
-                        FoodID: item.id,
-                        Name: item.name,
-                        CurrentPrice: item.currentPrice,
-                        ImageURL: safeImageUrl,
-                        Description: item.description,
-                        CategoryID: catSlug,
-                        IsAvailable: item.isAvailable,
-                        rating: Math.floor(item.rating || 5)
-                    };
-                });
+                // THAY ĐỔI 2: Xử lý dữ liệu phân trang.
+                // Lấy mảng thực tế nằm trong thuộc tính 'content'
+                const rawData = data.content ? data.content : data;
+
+                foodDatabase = rawData.map(item => formatFoodData(item));
 
                 renderSlider();
                 if (typeof window.applyFilters === 'function') window.applyFilters();
@@ -50,11 +60,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 2.2 Lấy Danh sách Bàn ăn
     function loadTablesFromDatabase() {
-        fetch(API_TABLE_URL)
+        // Cập nhật: Thêm ?size=100 để lấy toàn bộ danh sách bàn (giả sử quán có tối đa 100 bàn)
+        fetch(`${API_TABLE_URL}?size=100`)
             .then(res => res.json())
             .then(data => {
+                // XỬ LÝ PHÂN TRANG: Lấy mảng thực tế từ thuộc tính 'content'
+                const rawData = data.content ? data.content : data;
+
                 // Ánh xạ dữ liệu DB sang chuẩn Frontend
-                restaurantTables = data.map(t => ({
+                restaurantTables = rawData.map(t => ({
                     id: t.id,
                     name: t.tableNumber,
                     status: t.status // "Empty" hoặc "Occupied"
@@ -152,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==============================================================
-    // 5. XỬ LÝ TRANG MENU: RENDER MÓN ĂN VÀ BỘ LỌC
+    // 5. XỬ LÝ TRANG MENU: RENDER MÓN ĂN VÀ BỘ LỌC (ĐÃ CẬP NHẬT GỌI API)
     // ==============================================================
     const menuContainer = document.getElementById('menu-container');
     const filterBtns = document.querySelectorAll('.filter-btn');
@@ -172,10 +186,34 @@ document.addEventListener('DOMContentLoaded', function() {
         itemsToRender.forEach(food => { menuContainer.innerHTML += generateFoodCard(food); });
     }
 
-    window.applyFilters = function() {
-        let filteredData = foodDatabase;
-        if (currentCategory !== 'all') filteredData = filteredData.filter(food => food.CategoryID === currentCategory);
-        if (currentSearchWord !== '') filteredData = filteredData.filter(food => food.Name.toLowerCase().includes(currentSearchWord));
+    window.applyFilters = async function() {
+        let sourceData = foodDatabase; // Mặc định dùng mảng tải ban đầu
+
+        // Nếu khách hàng có gõ từ khóa tìm kiếm -> Gọi Backend
+        if (currentSearchWord !== '') {
+            try {
+                const url = `${API_FOOD_SEARCH_URL}?keyword=${encodeURIComponent(currentSearchWord)}`;
+                const response = await fetch(url);
+
+                if (response.status === 204 || response.status === 404) {
+                    sourceData = []; // Backend báo không có món nào
+                } else if (response.ok) {
+                    const rawData = await response.json();
+                    // Chuẩn hóa dữ liệu API trả về bằng hàm tiện ích
+                    sourceData = rawData.map(item => formatFoodData(item));
+                }
+            } catch (error) {
+                console.error("Lỗi gọi API tìm kiếm:", error);
+                sourceData = [];
+            }
+        }
+
+        // Sau khi có dữ liệu (Từ DB tĩnh hoặc từ API Tìm kiếm), tiến hành lọc theo danh mục
+        let filteredData = sourceData;
+        if (currentCategory !== 'all') {
+            filteredData = filteredData.filter(food => food.CategoryID === currentCategory);
+        }
+
         renderMenu(filteredData);
     }
 
@@ -196,8 +234,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (searchInput.classList.contains('active-search')) searchInput.focus();
             else { searchInput.value = ''; currentSearchWord = ''; window.applyFilters(); }
         });
+
+        // Sự kiện gõ phím tìm kiếm
         searchInput.addEventListener('input', function() {
-            currentSearchWord = this.value.toLowerCase().trim();
+            currentSearchWord = this.value.trim(); // Lấy từ khóa chính xác
             window.applyFilters();
         });
     }
@@ -250,17 +290,27 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.innerText = "Đang xác thực..."; submitBtn.disabled = true;
 
             fetch(API_USER_LOGIN_URL, {
-                method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
             })
                 .then(async response => {
-                    submitBtn.innerText = originalText; submitBtn.disabled = false;
-                    if (response.ok) return response.json();
-                    else { const errorMessage = await response.text(); throw new Error(errorMessage); }
+                    submitBtn.innerText = originalText;
+                    submitBtn.disabled = false;
+
+                    if (response.ok) {
+                        return response.json(); // Bây giờ nó trả về JSON chứa Token
+                    } else {
+                        const errorMessage = await response.text();
+                        throw new Error(errorMessage);
+                    }
                 })
-                .then(user => {
-                    localStorage.setItem('loggedInUser', JSON.stringify(user));
-                    if (user.role === 'Admin') window.location.href = "Admin.html";
-                    else if (user.role === 'Staff') window.location.href = "Staff.html";
+                .then(data => {
+                    localStorage.setItem('loggedInUser', JSON.stringify(data));
+                    localStorage.setItem('jwtToken', data.token);
+
+                    if (data.role === 'Admin') window.location.href = "Admin.html";
+                    else if (data.role === 'Staff') window.location.href = "Staff.html";
                 })
                 .catch(error => alert("❌ Đăng nhập thất bại: " + error.message));
         });
@@ -321,7 +371,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (tableSelector) {
             tableSelector.innerHTML = '<option value="">-- Chọn bàn của bạn --</option>';
-            // CHÚ Ý: Dùng mảng restaurantTables lấy từ DB, lọc bàn 'Empty'
             restaurantTables.forEach(t => {
                 if (t.status === 'Empty' || t.id == myTableId) {
                     const isSelected = (t.id == myTableId) ? 'selected' : '';
@@ -454,12 +503,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 let selectedTableId = tableSelector.value;
                 let note = orderNotes ? orderNotes.value.trim() : '';
 
-                // Đổi nút thành trạng thái đang xử lý
                 const originalText = orderBtn.innerText;
                 orderBtn.innerText = "Đang gửi đơn...";
                 orderBtn.disabled = true;
 
-                // 1. ĐÓNG GÓI DỮ LIỆU CHUẨN DTO ĐỂ GỬI LÊN SERVER
                 const orderPayload = {
                     tableId: parseInt(selectedTableId),
                     note: note,
@@ -470,13 +517,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     }))
                 };
 
-                // Kiểm tra xem có nhân viên đang đứng order giúp khách không
                 const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
                 if (loggedInUser && loggedInUser.id) {
                     orderPayload.userId = loggedInUser.id;
                 }
 
-                // 2. BẮN API LÊN SPRING BOOT
                 fetch(API_ORDER_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -486,24 +531,21 @@ document.addEventListener('DOMContentLoaded', function() {
                         orderBtn.innerText = originalText;
                         orderBtn.disabled = false;
 
-                        if (response.ok) {
-                            return response.json(); // Trả về dữ liệu JSON để .then() bên dưới dùng
-                        } else {
+                        if (response.ok) return response.json();
+                        else {
                             const err = await response.text();
                             throw new Error(err);
                         }
                     })
                     .then(savedOrder => {
-                        // 3. THÀNH CÔNG -> CẬP NHẬT LẠI TRẠNG THÁI GIAO DIỆN
                         alert(`🔔 Đã gửi hóa đơn #${savedOrder.id} đến nhà bếp thành công!`);
 
                         localStorage.setItem('myTableId', selectedTableId);
                         localStorage.setItem('tableNote_v3', note);
-                        localStorage.setItem('myOrderId', savedOrder.id); // LƯU ID VÀO ĐÂY LÀ ĐÚNG
+                        localStorage.setItem('myOrderId', savedOrder.id);
 
                         orderStatus = 'pending';
 
-                        // Cập nhật lại status của bàn trong mảng tạm để hiển thị "Đang phục vụ"
                         const tableIndex = restaurantTables.findIndex(t => t.id == selectedTableId);
                         if(tableIndex !== -1) {
                             restaurantTables[tableIndex].status = 'Occupied';
@@ -519,19 +561,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
             }
             else if (orderStatus === 'served') {
-                // Lấy ID đơn hàng đã lưu ở bước trên
                 const myOrderId = localStorage.getItem('myOrderId');
                 if (!myOrderId) {
                     alert("Không tìm thấy mã đơn hàng. Vui lòng vẫy tay gọi nhân viên!");
                     return;
                 }
 
-                // Vô hiệu hóa nút tạm thời tránh khách bấm nhiều lần
                 const originalText = orderBtn.innerText;
                 orderBtn.innerText = "Đang báo thu ngân...";
                 orderBtn.disabled = true;
 
-                // GỌI API CẬP NHẬT TRẠNG THÁI LÊN DATABASE
                 fetch(`${API_ORDER_URL}/${myOrderId}/status?status=payment_requested`, { method: 'PUT' })
                     .then(res => {
                         orderBtn.innerText = originalText;
@@ -560,9 +599,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // 8. KHỞI CHẠY LẤY DỮ LIỆU TỪ SERVER
     // ==========================================
     loadMenuFromDatabase();
-    loadTablesFromDatabase(); // Kéo danh sách Bàn ăn thật từ MySQL
+    loadTablesFromDatabase();
 
-    // Lắng nghe sự thay đổi nếu mở nhiều tab (Tạm thời)
     window.addEventListener('storage', function(event) {
         if (event.key === 'tableStatus_v3' || event.key === 'healthyFoodCart_v3') {
             orderStatus = localStorage.getItem('tableStatus_v3') || 'ordering';
@@ -570,45 +608,54 @@ document.addEventListener('DOMContentLoaded', function() {
             updateCartUI(true);
         }
     });
+
+    // ==============================================================
+    // 9. NÂNG CẤP: ĐỒNG BỘ ĐƠN HÀNG VÀ CHỐNG XUNG ĐỘT BỘ NHỚ
+    // ==============================================================
     function autoSyncOrderStatus() {
-        // Chỉ tự động kiểm tra khi Khách đã gửi đơn đi (Khác trạng thái ordering)
-        // và đơn chưa bị Hủy hoặc chưa Thanh toán xong.
         if (orderStatus === 'ordering' || orderStatus === 'payment_requested' || orderStatus === 'cancelled') {
             return;
         }
 
         const myOrderId = localStorage.getItem('myOrderId');
-        if (!myOrderId) return; // Nếu chưa có ID đơn hàng thì không làm gì cả
+        if (!myOrderId) return;
 
-        // Gọi API lên Server để lấy lại thông tin mới nhất của chính Đơn hàng này
-        fetch(`${API_ORDER_URL}`) // Gọi lấy danh sách (Hoặc nếu bạn có API /api/orders/{id} thì dùng càng tốt)
-            .then(response => response.json())
+        // BẮT BUỘC PHẢI CÓ ?size=1000 ĐỂ KHÔNG BỊ SÓT ĐƠN HÀNG Ở TRANG SAU
+        fetch(`${API_ORDER_URL}?size=1000`)
+            .then(response => {
+                if (!response.ok) throw new Error("Bị chặn hoặc lỗi Server");
+                return response.json();
+            })
             .then(data => {
-                // Tìm đúng đơn hàng của mình trong danh sách trả về
-                const myCurrentOrder = data.find(order => order.id == myOrderId);
+                // Xử lý an toàn dữ liệu phân trang
+                const rawData = data.content ? data.content : data;
+                if (!Array.isArray(rawData)) return;
+
+                // Tìm chính xác đơn hàng của khách
+                const myCurrentOrder = rawData.find(order => order.id == myOrderId);
 
                 if (myCurrentOrder) {
                     const statusFromServer = myCurrentOrder.status.toLowerCase();
 
-                    // Nếu trạng thái trên Server KHÁC với trạng thái đang hiển thị trên web
+                    // Nếu trạng thái thay đổi thì mới cập nhật UI
                     if (statusFromServer !== orderStatus && statusFromServer !== 'pending') {
-                        console.log("Trạng thái đơn hàng thay đổi:", statusFromServer);
+                        console.log("Trạng thái đơn hàng thay đổi thành:", statusFromServer);
 
-                        // Cập nhật lại biến trạng thái và lưu vào bộ nhớ
                         orderStatus = statusFromServer;
                         localStorage.setItem('tableStatus_v3', orderStatus);
 
-                        // Cập nhật lại giao diện người dùng
+                        // Lệnh này sẽ hiển thị nút "Yêu cầu thanh toán"
                         updateCartUI(true);
 
-                        // Bật thông báo Popup cho Khách hàng biết
+                        // Thông báo popup cho khách
                         if (statusFromServer === 'cooking') {
                             alert('👨‍🍳 Bếp đã xác nhận đơn. Món ăn của bạn đang được chế biến!');
                         } else if (statusFromServer === 'served') {
-                            alert('🔔 Tinh tinh! Món ăn đã được phục vụ lên bàn. Chúc bạn ngon miệng!');
+                            alert('🔔 Tinh tinh! Món ăn đã được phục vụ lên bàn. Vui lòng bấm nút Yêu cầu thanh toán khi dùng xong!');
                         } else if (statusFromServer === 'paid') {
                             alert('✅ Đơn hàng đã được thanh toán thành công! Cảm ơn quý khách.');
-                            // Reset lại giỏ hàng và màn hình sau khi thanh toán
+
+                            // Chỉ xóa giỏ hàng khi thực sự đã thanh toán xong
                             cart = [];
                             orderStatus = 'ordering';
                             localStorage.removeItem('healthyFoodCart_v3');
@@ -620,9 +667,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             })
-            .catch(error => console.error("Lỗi đồng bộ trạng thái đơn:", error));
+            .catch(error => {
+                // Giấu lỗi để UI khách hàng chạy êm ái
+            });
     }
-
-    // Bật bộ đếm thời gian: Cứ 5000 mili-giây (5 giây) thì chạy hàm kiểm tra 1 lần
     setInterval(autoSyncOrderStatus, 5000);
 });

@@ -5,6 +5,9 @@ import org.example.restaurantmanager.repository.RestaurantTableRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -17,8 +20,20 @@ public class RestaurantTableController {
     private RestaurantTableRepository tableRepository;
 
     @GetMapping
-    public List<RestaurantTable> getAllTables() {
-        return tableRepository.findAll();
+    public ResponseEntity<Page<RestaurantTable>> getAllTables(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(required = false) String keyword) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<RestaurantTable> tablePage;
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            tablePage = tableRepository.findByTableNumberContainingIgnoreCase(keyword.trim(), pageable);
+        } else {
+            tablePage = tableRepository.findAll(pageable);
+        }
+        return ResponseEntity.ok(tablePage);
     }
 
     @GetMapping("/{id}")

@@ -3,12 +3,18 @@ package org.example.restaurantmanager.controller;
 import org.example.restaurantmanager.dto.LoginRequestDTO;
 import org.example.restaurantmanager.model.User;
 import org.example.restaurantmanager.repository.UserRepository;
+import org.example.restaurantmanager.security.JwtUtil; // Bổ sung import JwtUtil
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -18,6 +24,9 @@ public class UserController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private JwtUtil jwtUtil; // Tiêm công cụ tạo JWT vào đây
 
     // ==========================================
     // 1. API ĐĂNG NHẬP (QUAN TRỌNG NHẤT)
@@ -37,7 +46,19 @@ public class UserController {
 
             // Kiểm tra mật khẩu (Lưu ý: equals() trong Java phân biệt chữ hoa/chữ thường)
             if (user.getPassword().equals(request.getPassword())) {
-                return ResponseEntity.ok(user); // Trả về thông tin user và kết thúc hàm
+
+                // 1. Nếu đúng mật khẩu -> Tạo chuỗi Token bảo mật
+                String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
+
+                // 2. Đóng gói Token và thông tin cơ bản trả về cho giao diện (Frontend)
+                Map<String, Object> response = new HashMap<>();
+                response.put("token", token);
+                response.put("id", user.getId());
+                response.put("username", user.getUsername());
+                response.put("fullName", user.getFullName());
+                response.put("role", user.getRole());
+
+                return ResponseEntity.ok(response); // Trả về mã 200 kèm cục JSON chứa Token
             }
         }
 
@@ -51,8 +72,20 @@ public class UserController {
 
     // Lấy danh sách toàn bộ nhân viên
     @GetMapping
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public ResponseEntity<Page<User>> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(required = false) String keyword) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<User> userPage;
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            userPage = userRepository.findByFullNameContainingIgnoreCase(keyword.trim(), pageable);
+        } else {
+            userPage = userRepository.findAll(pageable);
+        }
+        return ResponseEntity.ok(userPage);
     }
 
     // Lấy thông tin 1 nhân viên theo ID (Để điền vào form Sửa)
@@ -73,7 +106,6 @@ public class UserController {
         return ResponseEntity.ok(userRepository.save(user));
     }
 
-    // Chỉnh sửa thông tin
     // Chỉnh sửa thông tin nhân viên
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User userDetails) {

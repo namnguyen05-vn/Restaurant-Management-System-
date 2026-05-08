@@ -9,6 +9,36 @@
     <link rel="stylesheet" href="/CSS/style.css?v=1">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/JS/Admin.js?v=1" defer></script>
+
+    <style>
+        .filter-group button {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid var(--primary-color);
+            background: white;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .filter-group button:hover {
+            background: #f0f7f6;
+        }
+        .filter-group button.active-filter {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 184, 148, 0.3);
+        }
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr; /* Mặc định 1 cột */
+            gap: 20px;
+            margin-top: 30px;
+        }
+        @media (min-width: 1024px) {
+            .charts-grid { grid-template-columns: 1fr 1fr; } /* Màn hình lớn chia 2 cột */
+        }
+    </style>
 </head>
 <body class="admin-layout">
 
@@ -21,6 +51,7 @@
         <li id="menu-food"><i class="fa-solid fa-burger"></i> Quản lý Thực đơn</li>
         <li id="menu-staff"><i class="fa-solid fa-users-gear"></i> Quản lý Nhân viên</li>
         <li id="menu-table"><i class="fa-solid fa-chair"></i> Quản lý Bàn</li>
+        <li id="menu-invoice"><i class="fa-solid fa-file-invoice-dollar"></i> Lịch sử Hóa đơn</li>
         <li style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1);">
             <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất
         </li>
@@ -39,30 +70,63 @@
     <div class="admin-content">
 
         <section id="tab-dashboard">
+
+            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+                <h2 style="margin: 0; color: var(--text-dark);">Báo cáo kinh doanh</h2>
+            </div>
+
             <div class="stat-grid">
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fa-solid fa-sack-dollar"></i></div>
-                    <div class="stat-info"><h3>Doanh thu hôm nay</h3><div class="value" id="stat-revenue">0đ</div></div>
+                    <div class="stat-info"><h3>Doanh thu</h3><div class="value" id="stat-revenue">0đ</div></div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon" style="background:#e8f4fd; color:#3498db;"><i class="fa-solid fa-receipt"></i></div>
+                <div class="stat-card" onclick= document.getElementById('menu-invoice').click()>
+                    <div class="stat-icon" style="background:#e8f4fd; color:#3498db;" ><i class="fa-solid fa-receipt"></i></div>
                     <div class="stat-info"><h3>Đơn hàng hoàn tất</h3><div class="value" id="stat-orders">0 đơn</div></div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon" style="background:#fef5e7; color:#f39c12;"><i class="fa-solid fa-burger"></i></div>
+                <div class="stat-card"  onclick= document.getElementById('menu-food').click()>
+                    <div class="stat-icon" style="background:#fef5e7; color:#f39c12;" ><i class="fa-solid fa-burger" ></i></div>
                     <div class="stat-info"><h3>Món ăn đang bán</h3><div class="value">24 món</div></div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon" style="background:#fceae9; color:#e74c3c;"><i class="fa-solid fa-users"></i></div>
+                <div class="stat-card"  onclick= document.getElementById('menu-table').click()>
+                    <div class="stat-icon" style=" background:#fceae9; color:#e74c3c;" ><i class="fa-solid fa-users"></i></div>
                     <div class="stat-info"><h3>Khách đang phục vụ</h3><div class="value">4 bàn</div></div>
                 </div>
             </div>
 
-            <div class="chart-wrapper">
-                <h3 style="margin-bottom: 20px; color: var(--text-dark);">Biểu đồ Doanh thu 7 ngày qua</h3>
-                <div class="chart-wrapper" style="position: relative; height: 350px; max-height: 350px; width: 100%; overflow: hidden; padding-bottom: 20px;">
-                    <h3 style="margin-bottom: 20px; color: var(--text-dark);">Biểu đồ Doanh thu 7 ngày qua</h3>
-                    <canvas id="revenueChart" style="max-height: 280px; width: 100%;"></canvas>
+            <div class="charts-grid">
+                <div class="chart-card" style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+
+                        <h3 style="margin: 0; color: var(--text-dark); font-size: 1.1rem;">
+                            <i class="fa-solid fa-chart-line" style="color: var(--primary-color); margin-right: 8px;"></i> Biểu đồ Doanh thu
+                        </h3>
+
+                        <select id="dashboard-filter-dropdown"
+                                style="padding: 8px 12px; border-radius: 8px; border: 1px solid #e0e0e0; font-family: Poppins; font-weight: 500; color: #333; cursor: pointer; outline: none; background: #f8f9fa; transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                            <option value="today">📅 Hôm nay</option>
+                            <option value="week" selected>📅 7 Ngày qua</option>
+                            <option value="month">📅 Tháng này</option>
+                            <option value="year">📅 Năm nay</option>
+                        </select>
+
+                    </div>
+
+                    <div style="position: relative; height: 320px; width: 100%;">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+
+
+                <div class="chart-card" style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                    <h3 style="margin-bottom: 20px; color: var(--text-dark); font-size: 1.1rem;"><i class="fa-solid fa-trophy" style="color: #f1c40f; margin-right: 8px;"></i> Top 5 Món Bán Chạy</h3>
+                    <button onclick="showAllFoodRevenue()" style="padding: 5px 12px; border-radius: 6px; border: 1px solid var(--primary-color); background: none; color: var(--primary-color); cursor: pointer; font-size: 0.85rem; font-weight: 600;">
+                        <i class="fa-solid fa-list-check"></i> Xem chi tiết
+                    </button>
+                    <div style="position: relative; height: 320px; width: 100%;">
+                        <canvas id="topFoodChart"></canvas>
+                    </div>
                 </div>
             </div>
         </section>
@@ -71,6 +135,9 @@
             <div class="table-container">
                 <div class="table-header-flex">
                     <h3>Danh sách Món ăn</h3>
+                    <input type="text" id="search-food" placeholder="🔍 Tìm tên món (VD: com tam)..."
+                           style="padding: 8px 15px; border-radius: 6px; border: 1px solid #ccc; outline: none; width: 250px;"
+                           oninput="debounceSearch('food')">
                     <button class="btn btn-primary" onclick="openFoodModal('add')">+ Thêm món mới</button>
                 </div>
 
@@ -90,6 +157,7 @@
                         <tbody>
                         </tbody>
                     </table>
+                    <div id="pagination-food" style="margin-top: 20px;"></div>
                 </div>
             </div>
         </section>
@@ -98,6 +166,9 @@
             <div class="table-container">
                 <div class="table-header-flex">
                     <h3>Danh sách Nhân sự hệ thống</h3>
+                    <input type="text" id="search-staff" placeholder="🔍 Tìm tên nhân viên..."
+                           style="padding: 8px 15px; border-radius: 6px; border: 1px solid #ccc; outline: none; width: 250px;"
+                           oninput="debounceSearch('staff')">
                     <button class="btn btn-primary" onclick="openStaffModal('add')">+ Thêm nhân viên</button>
                 </div>
 
@@ -117,6 +188,7 @@
 
                         </tbody>
                     </table>
+                    <div id="pagination-staff" style="margin-top: 20px;"></div>
                 </div>
             </div>
         </section>
@@ -125,6 +197,9 @@
             <div class="table-container">
                 <div class="table-header-flex">
                     <h3>Danh sách Bàn ăn</h3>
+                    <input type="text" id="search-table" placeholder="🔍 Tìm tên bàn..."
+                           style="padding: 8px 15px; border-radius: 6px; border: 1px solid #ccc; outline: none; width: 250px;"
+                           oninput="debounceSearch('table')">
                     <button class="btn btn-primary" onclick="openTableModal('add')">+ Thêm bàn mới</button>
                 </div>
 
@@ -140,8 +215,35 @@
                         </thead>
                         <tbody></tbody>
                     </table>
+                    <div id="pagination-table" style="margin-top: 20px;"></div>
                 </div>
             </div>
+        </section>
+
+        <section id="tab-invoice" class="content-section" style="display: none;">
+            <div class="section-header">
+                <h2>Lịch sử Giao dịch & Hóa đơn</h2>
+                <input type="text" id="search-invoice" placeholder="🔍 Tìm theo tên Thu ngân..."
+                       style="padding: 8px 15px; border-radius: 6px; border: 1px solid #ccc; outline: none; width: 250px;"
+                       oninput="debounceSearch('invoice')">
+                <button class="btn btn-primary" onclick="loadInvoices(currentInvoicePage)"><i class="fa-solid fa-rotate-right"></i> Làm mới</button>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Mã HĐ</th>
+                    <th>Mã Đơn (Order)</th>
+                    <th>Nhân viên thu ngân</th>
+                    <th>Thời gian</th>
+                    <th>PT Thanh toán</th>
+                    <th>Tổng tiền</th>
+                </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+            <div id="pagination-invoice" style="margin-top: 20px;"></div>
         </section>
 
     </div>
@@ -284,6 +386,35 @@
         </form>
     </div>
 </div>
+<div id="revenue-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+    <div style="background: white; width: 700px; max-height: 80vh; border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden;">
 
+        <div style="padding: 20px 25px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #f8f9fa;">
+            <h3 style="margin: 0; color: var(--text-dark); font-size: 1.2rem;">
+                <i class="fa-solid fa-chart-pie" style="color: var(--primary-color); margin-right: 8px;"></i> Báo Cáo Chi Tiết Doanh Thu
+            </h3>
+            <button onclick="closeRevenueModal()" style="background: none; border: none; font-size: 1.5rem; color: #888; cursor: pointer; line-height: 1;">&times;</button>
+        </div>
+
+        <div style="padding: 20px; overflow-y: auto;">
+            <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                <tr>
+                    <th style="text-align: center; width: 50px;">Top</th>
+                    <th style="text-align: left;">Tên món ăn</th>
+                    <th style="text-align: center;">Số lượng bán</th>
+                    <th style="text-align: right;">Tổng doanh thu</th>
+                </tr>
+                </thead>
+                <tbody id="revenue-table-body">
+                </tbody>
+            </table>
+        </div>
+
+        <div style="padding: 15px 25px; border-top: 1px solid #eee; text-align: right; background: #f8f9fa;">
+            <button onclick="closeRevenueModal()" class="btn" style="background: #e0e0e0; color: #333; padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Đóng lại</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>

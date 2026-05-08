@@ -2,8 +2,9 @@
 // 0. CHỐT CHẶN BẢO MẬT (AUTH GUARD) VÀ ĐĂNG XUẤT
 // ==========================================
 const loggedInUserStr = localStorage.getItem('loggedInUser');
+const jwtToken = localStorage.getItem('jwtToken'); // Lấy Token từ kho
 
-if (!loggedInUserStr) {
+if (!loggedInUserStr || !jwtToken) {
     alert("🔒 Vui lòng đăng nhập để truy cập trang Nhân viên!");
     window.location.href = "home.html";
 } else {
@@ -24,7 +25,7 @@ if (!loggedInUserStr) {
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', function() {
                     if (confirm("Bạn có chắc chắn muốn thoát khỏi hệ thống?")) {
-                        localStorage.removeItem('loggedInUser');
+                        localStorage.clear(); // Xóa sạch cả User và Token
                         window.location.href = "home.html";
                     }
                 });
@@ -34,10 +35,43 @@ if (!loggedInUserStr) {
 }
 
 // ==========================================
+// TẠO HÀM BỌC FETCH BẢO MẬT (API INTERCEPTOR)
+// ==========================================
+async function fetchWithAuth(url, options = {}) {
+    const token = localStorage.getItem('jwtToken');
+
+    if (!token) {
+        alert("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại!");
+        localStorage.clear();
+        window.location.href = "home.html";
+        throw new Error("No token found");
+    }
+
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token, // Gắn vé VIP vào đây
+        ...options.headers
+    };
+
+    const response = await fetch(url, { ...options, headers });
+
+    // Đá văng ra ngoài nếu token hết hạn hoặc cố tình đổi LocalStorage
+    if (response.status === 401 || response.status === 403) {
+        alert("Phiên đăng nhập đã hết hạn hoặc bạn không có quyền! Hệ thống sẽ tự động đăng xuất.");
+        localStorage.clear();
+        window.location.href = "home.html";
+        throw new Error("Unauthorized");
+    }
+
+    return response;
+}
+
+// ==========================================
 // CẤU HÌNH API VÀ BIẾN TOÀN CỤC
 // ==========================================
 const API_ORDER_URL = "http://localhost:8080/api/orders";
 const API_TABLE_URL = "http://localhost:8080/api/tables";
+const API_INVOICE_URL = "http://localhost:8080/api/invoices"; // Thêm API thanh toán
 
 let allOrders = [];
 let currentFilter = 'all';
@@ -55,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
         'payment_requested': { text: 'Khách gọi tính tiền', bg: 'bg-cancelled', color: '#8e44ad' }
     };
 
-    // --- LOGIC CHUYỂN TAB (ĐƠN HÀNG <-> QUẢN LÝ BÀN) ---
+    // --- LOGIC CHUYỂN TAB ---
     const navOrders = document.getElementById('nav-orders');
     const navTables = document.getElementById('nav-tables');
     const sectionOrders = document.getElementById('section-orders');
@@ -76,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
             navOrders.classList.remove('active-pill');
             sectionOrders.style.display = 'none';
             sectionTables.style.display = 'block';
-            loadTables(); // Chuyển sang tab bàn thì tải lại sơ đồ bàn
+            loadTables();
         });
     }
 
@@ -84,10 +118,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // 1. GỌI API ĐỌC DỮ LIỆU ĐƠN HÀNG (LIVE)
     // ==========================================
     function loadOrders() {
-        fetch(API_ORDER_URL)
+        fetchWithAuth(API_ORDER_URL) // Đổi thành fetchWithAuth
             .then(res => res.json())
             .then(orders => {
-                // Sắp xếp đơn mới nhất lên đầu (ID lớn nhất)
                 allOrders = orders.sort((a, b) => b.id - a.id);
                 renderOrders();
             })
@@ -97,10 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.renderOrders = function() {
         if (!orderBoard) return;
 
-        // Ẩn các đơn đã thanh toán hoặc đã hủy khỏi màn hình bếp
         let activeOrders = allOrders.filter(o => o.status !== 'Paid' && o.status !== 'Cancelled');
-
-        // Lọc theo nút filter hiện tại
         let filteredOrders = activeOrders;
         if (currentFilter !== 'all') {
             filteredOrders = activeOrders.filter(o => o.status.toLowerCase() === currentFilter.toLowerCase());
@@ -113,11 +143,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         let html = '';
         filteredOrders.forEach(order => {
-            // Định dạng giờ
             const timeObj = new Date(order.timeCreated || order.orderTime);
             const timeString = timeObj.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 
-            // Danh sách món ăn từ Backend
             let itemsHTML = '';
             if (order.orderDetails && order.orderDetails.length > 0) {
                 order.orderDetails.forEach(item => {
@@ -127,7 +155,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             let noteHTML = order.note ? `<div class="order-note" style="color: #e67e22; margin-bottom: 10px;"><i class="fa-solid fa-pen"></i> Ghi chú: ${order.note}</div>` : '';
 
-            // Render nút bấm tùy theo trạng thái (Gọi hàm API thực tế)
             let actionButtons = '';
             if (order.status === 'Pending') {
                 actionButtons = `
@@ -171,13 +198,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // 2. VẼ SƠ ĐỒ BÀN TỪ API
     // ==========================================
     window.loadTables = function() {
-        fetch(API_TABLE_URL)
+        // Chúng ta thêm ?size=100 để đảm bảo lấy hết tất cả các bàn để vẽ sơ đồ
+        fetchWithAuth(`${API_TABLE_URL}?size=100`)
             .then(res => res.json())
-            .then(tables => {
+            .then(data => {
                 if (!tableGrid) return;
+
+                // XỬ LÝ DỮ LIỆU PHÂN TRANG: Trích xuất mảng từ thuộc tính 'content'
+                const tables = data.content ? data.content : data;
+
                 let html = '';
                 tables.forEach(t => {
                     const isOccupied = t.status === 'Occupied';
+                    // Nếu là bàn đang có khách (Occupied) thì hiện màu vàng, bàn trống (Empty) hiện màu xanh
                     const bgColor = isOccupied ? '#ffeaa7' : '#55efc4';
                     const iconColor = isOccupied ? '#d35400' : '#00b894';
 
@@ -198,12 +231,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // 3. API CẬP NHẬT TRẠNG THÁI (NGHIỆP VỤ)
     // ==========================================
     window.updateOrderStatus = function(orderId, newStatus) {
-        fetch(`${API_ORDER_URL}/${orderId}/status?status=${newStatus}`, { method: 'PUT' })
+        fetchWithAuth(`${API_ORDER_URL}/${orderId}/status?status=${newStatus}`, { method: 'PUT' }) // Đổi thành fetchWithAuth
             .then(res => {
                 if (res.ok) {
-                    loadOrders(); // Tải lại giao diện ngay
-
-                    // Gửi tín hiệu sang máy khách hàng (home.js) để họ thấy trạng thái đổi
+                    loadOrders();
                     localStorage.setItem('tableStatus_v3', newStatus.toLowerCase());
                 } else {
                     alert("Lỗi cập nhật trạng thái đơn hàng!");
@@ -214,40 +245,35 @@ document.addEventListener('DOMContentLoaded', function() {
     window.processPayment = function(orderId) {
         if(confirm("Xác nhận khách đã thanh toán, xuất hóa đơn và dọn bàn?")) {
 
-            // Lấy ID của nhân viên đang đăng nhập để ghi danh vào hóa đơn
             const loggedInUserStr = localStorage.getItem('loggedInUser');
             let staffId = null;
             if (loggedInUserStr) {
                 staffId = JSON.parse(loggedInUserStr).id;
             }
 
-            // Đóng gói dữ liệu thanh toán
             const invoicePayload = {
                 orderId: orderId,
                 staffId: staffId,
-                discountAmount: 0, // Mặc định không giảm giá
-                paymentMethod: "Tiền mặt" // Mặc định là Tiền mặt
+                discountAmount: 0,
+                paymentMethod: "Tiền mặt"
             };
 
-            // Bắn lên API Invoices mới tạo
-            fetch("http://localhost:8080/api/invoices", {
+            fetchWithAuth(API_INVOICE_URL, { // Đổi thành fetchWithAuth
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(invoicePayload)
             })
                 .then(async res => {
                     if (res.ok) {
                         alert("🎉 Đã thanh toán và xuất hóa đơn thành công!");
 
-                        // Xóa giỏ hàng trên máy khách (Để khách khác vào bàn có thể gọi mới)
                         localStorage.setItem('tableStatus_v3', 'ordering');
                         localStorage.setItem('healthyFoodCart_v3', '[]');
                         localStorage.setItem('tableNote_v3', '');
                         localStorage.removeItem('myTableId');
                         localStorage.removeItem('myOrderId');
 
-                        loadOrders(); // Bảng đơn hàng tự động mất đơn này
-                        loadTables(); // Bàn tự động chuyển màu xanh (Trống)
+                        loadOrders();
+                        loadTables();
                     } else {
                         const err = await res.text();
                         alert("❌ Lỗi thanh toán: " + err);
@@ -281,13 +307,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const orderId = document.getElementById('cancel-order-id').value;
 
-            // Gọi API Hủy đơn
-            fetch(`${API_ORDER_URL}/${orderId}/status?status=Cancelled`, { method: 'PUT' })
+            fetchWithAuth(`${API_ORDER_URL}/${orderId}/status?status=Cancelled`, { method: 'PUT' }) // Đổi thành fetchWithAuth
                 .then(res => {
                     if (res.ok) {
                         alert("Đã hủy đơn hàng!");
 
-                        // Báo cho máy khách
                         localStorage.setItem('tableNote_v3', reason);
                         localStorage.setItem('tableStatus_v3', 'cancelled');
 
@@ -320,7 +344,6 @@ document.addEventListener('DOMContentLoaded', function() {
     loadOrders();
     loadTables();
 
-    // Cứ 5 giây, tự động gọi Database để lấy đơn hàng và trạng thái bàn mới nhất!
     setInterval(() => {
         loadOrders();
         if (sectionTables && sectionTables.style.display === 'block') {

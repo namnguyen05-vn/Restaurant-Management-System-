@@ -99,16 +99,37 @@ public class OrderController {
     @PutMapping("/{orderId}/status")
     public ResponseEntity<?> updateOrderStatus(@PathVariable Long orderId, @RequestParam String status) {
         return orderRepository.findById(orderId).map(order -> {
+
+            // 1. Cập nhật trạng thái của Đơn hàng tổng (Order)
             order.setStatus(status);
 
-            // Nếu đơn hàng thanh toán xong (Paid) hoặc Bị hủy (Cancelled), giải phóng bàn
+            // 2. ĐỒNG BỘ TRẠNG THÁI XUỐNG TỪNG MÓN ĂN (OrderDetail)
+            // Nếu đơn hàng đã phục vụ (Served) hoặc thanh toán (Paid)
+            if (status.equals("Served") || status.equals("Paid")) {
+                for (OrderDetail detail : order.getOrderDetails()) {
+                    // Tránh ghi đè nếu có món nào đó đã bị báo Hết/Hủy (Cancelled) trước đó
+                    if (!"Cancelled".equals(detail.getStatus())) {
+                        detail.setStatus("Served");
+                    }
+                }
+            }
+            // Nếu khách hủy toàn bộ đơn hàng
+            else if (status.equals("Cancelled")) {
+                for (OrderDetail detail : order.getOrderDetails()) {
+                    detail.setStatus("Cancelled");
+                }
+            }
+
+            // 3. Giải phóng bàn nếu đơn hàng thanh toán xong (Paid) hoặc Bị hủy (Cancelled)
             if (status.equals("Paid") || status.equals("Cancelled")) {
                 RestaurantTable table = order.getTable();
                 table.setStatus("Empty");
                 tableRepository.save(table);
             }
 
+            // Lưu lại Order (Spring Boot sẽ tự động lưu luôn các OrderDetail đã bị đổi trạng thái ở trên)
             return ResponseEntity.ok(orderRepository.save(order));
+
         }).orElse(ResponseEntity.notFound().build());
     }
 }

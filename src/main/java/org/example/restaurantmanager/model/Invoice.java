@@ -3,7 +3,7 @@ package org.example.restaurantmanager.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 @Entity
 @Table(name = "invoices")
 public class Invoice {
@@ -43,7 +43,10 @@ public class Invoice {
     protected void onCreate() { this.paymentTime = LocalDateTime.now(); }
 
     //Getters và Setters
-
+    @JsonProperty("orderId")
+    public Long getOrderIdForJson() {
+        return (order != null) ? order.getId() : null;
+    }
     public Long getId() {return id;}
 
     public void setId(Long id) {this.id = id;}
